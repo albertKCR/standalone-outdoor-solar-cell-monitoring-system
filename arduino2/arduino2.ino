@@ -2,8 +2,8 @@
 #include<SoftwareSerial.h>
 SoftwareSerial SUART (2, 3);
 
-float rpm_val = 0.27907;
-float rpm_val2 = 0.97867564534;
+double rpm_val = 0.123451234512;
+double rpm_val2 = 0.97867564534;
 
 void setup()
 {
@@ -14,10 +14,10 @@ void setup()
 void loop()
 {
   Serial.println("sending..");
-  SUART.println(rpm_val, 5);
+  SUART.println(rpm_val, 15);
   //delay(500);
   //SUART.println(rpm_val2, 11);
-  Serial.println(rpm_val, 5);
-  //Serial.println(rpm_val2, 11);
+  Serial.println(rpm_val, 15);
+  Serial.println(rpm_val2, 15);
   delay(5000);
 }

@@ -22,7 +22,7 @@ const int   httpsPort   = 443;
 String      url         = String("/macros/s/") + GScriptId + "/exec?cal";
 int voltage = 0;
 int current = 1;
-char myRPM[15];
+char myRPM[20];
 void setup() {
 
   Serial.begin(115200);
@@ -97,19 +97,17 @@ void loop() {
   else {
     Serial.println("[Error]");
   }
-  byte m = mySUART.readBytesUntil('\n', myRPM, 15);
+  byte m = mySUART.readBytesUntil('\n', myRPM, 20);
   int l = m;
-  myRPM[l] = '\n';
+  myRPM[l] = '\0';
   Serial.println(myRPM);
   float rpm = atof(myRPM);
-  Serial.println(rpm, 5);
+  Serial.println(rpm, 12);
   //Serial.println(myRPM);
-  String myRPM1(rpm, 5);
+  String myRPM1(rpm, 12);
   Serial.println(myRPM1);
-  //Serial.println(myRPM1.length());
-  //double rpm = myRPM1.toDouble();
-  //Serial.println(rpm, 11);
-  String x = "0.298767";
+
+  String x = "0.298767123456123";
   delay(500);
   payload = payload_base + "\"" + x + "," + myRPM1 + "\"}";
 
