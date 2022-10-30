@@ -10,7 +10,7 @@
 SoftwareSerial mySUART(4, 5);  //D2, D1
 
 HTTPSRedirect* client = nullptr;
-const char* GScriptId   = "AKfycbyIuYSuV6gGtdbpxMDyDek0_gG0MCr0IANYxaQNr6a83pN4B61YIKFFk8zy9c8ccdc5";
+const char* GScriptId   = "AKfycbzJ__WvYpeAAznt4LC4DscsHw7U8C2LHCng5COQcLsHr3VXBwalZAJjD4QDmNQG19Bw";
 //-----------------------------------------------------------------
 
 
@@ -100,17 +100,15 @@ void loop() {
   byte m = mySUART.readBytesUntil('\n', myRPM, 15);
   int l = m;
   myRPM[l] = '\0';
-  Serial.println(m);
   Serial.println(l);
   Serial.println(myRPM);
-  //String rpm(myRPM);
-  String myRPM1 = myRPM;
+  String myRPM1(myRPM);
   Serial.println(myRPM1);
-  //double rpm = myRPM1.toDouble();
-  //Serial.println(rpm, 11);
+  double rpm = myRPM1.toDouble();
+  Serial.println(rpm, 11);
   String x = "0.298767";
   delay(500);
-  payload = payload_base + "\"" + myRPM1 + "," + x + "\"}";
+  payload = payload_base + "\"" + x + "," + rpm + "\"}";
 
   Serial.println("Enviando...");
   
