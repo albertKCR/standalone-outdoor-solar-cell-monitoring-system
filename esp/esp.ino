@@ -99,16 +99,19 @@ void loop() {
   }
   byte m = mySUART.readBytesUntil('\n', myRPM, 15);
   int l = m;
-  myRPM[l] = '\0';
-  Serial.println(l);
+  myRPM[l] = '\n';
   Serial.println(myRPM);
-  String myRPM1(myRPM);
+  float rpm = atof(myRPM);
+  Serial.println(rpm, 5);
+  //Serial.println(myRPM);
+  String myRPM1(rpm, 5);
   Serial.println(myRPM1);
-  double rpm = myRPM1.toDouble();
-  Serial.println(rpm, 11);
+  //Serial.println(myRPM1.length());
+  //double rpm = myRPM1.toDouble();
+  //Serial.println(rpm, 11);
   String x = "0.298767";
   delay(500);
-  payload = payload_base + "\"" + x + "," + rpm + "\"}";
+  payload = payload_base + "\"" + x + "," + myRPM1 + "\"}";
 
   Serial.println("Enviando...");
   
