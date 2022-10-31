@@ -6,7 +6,6 @@
 #include "ADS1256.h"
 #include "SparkFun_External_EEPROM.h"
 #include <SoftwareSerial.h>
-#include "WiFiEsp.h"
 
 #define latchPin 8       // connected to ST_CP
 #define clockPin 7       // connected to SH_CP
@@ -58,7 +57,5 @@
         void savedata(int addres,float volt, float current,float dif);
         void readdata(int addres,float &volt, float &current,float &dif);
         float getDif(int addres);
-        //String sendData(String command, const int timeout, boolean debug);
-        //void wifiConnect();
-        //void sendHttpResponse(WiFiEspClient client);
+        void sendToESP();
 #endif

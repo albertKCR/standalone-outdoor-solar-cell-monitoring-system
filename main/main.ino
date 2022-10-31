@@ -3,10 +3,10 @@
 #include "extraFunctions.h"
 #include "Adafruit_MCP4725.h"
 #include <SoftwareSerial.h>
-
 #include "SparkFun_External_EEPROM.h"
+
 ExternalEEPROM eep;
-SoftwareSerial esp8266(15, 47);
+SoftwareSerial esp8266(2, 3);
 
 /* Keep this commented...
     THESE ARE THE PINS ON THE ARDUINO UNO YOU SHOULD WIRE THESE TO
@@ -168,18 +168,12 @@ void loop() {
 
         }
         else if(input==6){
-          //wifiConnect();  
+          sendToESP();
         }
 
     }// end serial scan
 
-
-
-
 }
-
-
-
 
 void CallISR(){
 

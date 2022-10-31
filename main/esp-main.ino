@@ -72,6 +72,11 @@ void setup() {
 
 void loop() {
 
+  if (WiFi.status() != WL_CONNECTED){
+    mySUART.println(0);
+  }
+  else{
+  mySUART.println(1);
   Serial.println(WiFi.localIP());
 
   if(mySUART.available()>0){
@@ -116,7 +121,7 @@ void loop() {
   }
   }
 
-
+  }
 
 
   delay(1000);

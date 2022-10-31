@@ -628,5 +628,18 @@ void voltageAdjust(){
 	Serial.begin(38400);
     Serial.println("Calibração concluida!");
 
+}
 
+//send the voltage and current values to the esp8266
+void sendToESP(){
+    if (esp8266.read()){
+        readdata((i+1), volt,current,dif);
+        esp8266.println(volt, 13);
+        delay(500);
+        esp8266.println(current, 13);
+        delay(500);
+    }
+    else{
+        Serial.println("wifi disconnected");
+    }
 }
