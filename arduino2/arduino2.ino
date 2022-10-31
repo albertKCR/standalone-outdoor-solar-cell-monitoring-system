@@ -14,6 +14,7 @@ void setup()
 void loop()
 {
   Serial.println("sending..");
+  Serial.println(rpm_val, 12);
   SUART.println(rpm_val, 15);
   //delay(500);
   //SUART.println(rpm_val2, 11);
