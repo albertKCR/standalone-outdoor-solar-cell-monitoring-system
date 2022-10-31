@@ -27,7 +27,7 @@ void setup() {
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
 
   delay(100);
-  WiFi.begin("AP18", "zanella123");
+  WiFi.begin("iPhone de Albert", "12345678");
 
   Serial.print("Connecting");
   while (WiFi.status() != WL_CONNECTED)
