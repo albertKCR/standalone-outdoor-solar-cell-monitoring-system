@@ -6,7 +6,7 @@
 #include "SparkFun_External_EEPROM.h"
 
 ExternalEEPROM eep;
-SoftwareSerial esp8266(2, 3);
+SoftwareSerial esp8266(3, 4);
 
 /* Keep this commented...
     THESE ARE THE PINS ON THE ARDUINO UNO YOU SHOULD WIRE THESE TO
@@ -19,6 +19,7 @@ SoftwareSerial esp8266(2, 3);
 // --- Objects --- 
     Adafruit_MCP4725 dac;    // DAC object
     ADS1256 adc;
+    int pontosTotais;
 
 // ---  Pin names --- 
     #define latchPin 8       // connected to ST_CP  chip pin 12
@@ -85,8 +86,9 @@ void CallISR();// interruption routine, detects falling edge
 
 
 void setup() {
+  esp8266.begin(115200);
   delay(100);
-  Serial.begin(38400);
+  Serial.begin(115200);
   Serial.println("booting");
 //=== --- === --- === --- --- === --- === --- === --- === --- === --- --- === --- === --- === --- === ---
 //--- 74HC595 pins as outputs
@@ -135,7 +137,10 @@ void setup() {
 
 
 void loop() {
-
+    esp8266.println(0.988, 1);
+    //Serial.println(totalPoints, 1);
+    delay(4000);
+    
     if(Serial.available()>0){
         int input = 0;
         //input = Serial.read();
