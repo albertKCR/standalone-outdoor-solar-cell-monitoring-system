@@ -1,6 +1,6 @@
 //Sending:
 #include <SoftwareSerial.h>
-SoftwareSerial SUART (2, 3);
+SoftwareSerial SUART (3, 4);
 
 double rpm_val = 0.123451234512;
 double rpm_val2 = 0.97867564534;
