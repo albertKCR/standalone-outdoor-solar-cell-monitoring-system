@@ -628,12 +628,22 @@ void autonomous(){
         if((now.hour() == 12) & (now.minute() == 00)){  //check the time to make the measurement
             autonomousSweep();  //make the measurement
             delay(5000);
+            sensorsMeasure();   //reads the temperature and humidity sensor
             sendToESP();    //sends the data to google sheets
         }
         if(Serial.available()>0){   //sending something in the monitor serial breaks the while loop
             break;
         }
     }
+}
+
+void sensorsMeasure(){
+    humidity = dht.readHumidity();
+    temperature = dht.readTemperature();
+    if (isnan(temperature) || isnan(humidity)) {
+        Serial.println("Failed to read from DHT");
+    }
+    luminosity = analogRead(LDR);
 }
 
 void autonomousSweep(){
@@ -731,38 +741,38 @@ void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int meas
 }
 
 
-void sendToESP1(){
-    Serial.println(pontosTotais);
-    int postedPoints=0;
-    int i=0;
-    int counter=0;
-    //esp8266.println(pontosTotais, 13);
-    delay(500);
-    float volt;
-    float current;
-    float dif;
-    while (counter<80){
+// void sendToESP1(){
+//     Serial.println(pontosTotais);
+//     int postedPoints=0;
+//     int i=0;
+//     int counter=0;
+//     //esp8266.println(pontosTotais, 13);
+//     delay(500);
+//     float volt;
+//     float current;
+//     float dif;
+//     while (counter<80){
 
-        readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
-        String voltS(volt, 5);
-        String currentS(volt, 13);
-        esp8266.println(currentS); // envia para o esp a último corrente
-        Serial.println(currentS);
-        delay(200);
+//         readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
+//         String voltS(volt, 5);
+//         String currentS(volt, 13);
+//         esp8266.println(currentS); // envia para o esp a último corrente
+//         Serial.println(currentS);
+//         delay(200);
         
-        esp8266.println(voltS); // envia para o esp a última tensão
-        Serial.println(voltS);
-        delay(200);
+//         esp8266.println(voltS); // envia para o esp a última tensão
+//         Serial.println(voltS);
+//         delay(200);
         
-        if (postedPoints==20){ //a cada 20 correntes e tensões enviadas o esp faz um post
-            postedPoints=0;
-            delay(10000);
-        }
-        postedPoints++;
-        counter++;
-        i++;
-    }
-}
+//         if (postedPoints==20){ //a cada 20 correntes e tensões enviadas o esp faz um post
+//             postedPoints=0;
+//             delay(10000);
+//         }
+//         postedPoints++;
+//         counter++;
+//         i++;
+//     }
+// }
 
 void sendToESP(){
     Serial.println(totalPoints);
@@ -792,41 +802,43 @@ void sendToESP(){
             postedPoints++;
         }
     }
+    String sensorsValues = String(humidity, 3) + "," + String(temperature, 3) + "," + String(luminosity);    //transform the sensors data in one string
+    esp8266.println(sensorsValues);
 }
 
 //send the voltage and current values to the esp8266
 
-void sendToESP2(){
-    Serial.println(pontosTotais);
-    //int postedPoints=0;
-    int i=0;
-    int counter=0;
-    //esp8266.println(pontosTotais, 13);
-    float volt;
-    float current;
-    float dif;
-    while (counter<80){
+// void sendToESP2(){
+//     Serial.println(pontosTotais);
+//     //int postedPoints=0;
+//     int i=0;
+//     int counter=0;
+//     //esp8266.println(pontosTotais, 13);
+//     float volt;
+//     float current;
+//     float dif;
+//     while (counter<80){
 
-        readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
+//         readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
     
-        esp8266.println(current, 13); // envia para o esp a último corrente
-        Serial.println(current, 13);
-        delay(100);
+//         esp8266.println(current, 13); // envia para o esp a último corrente
+//         Serial.println(current, 13);
+//         delay(100);
         
-        esp8266.println(volt, 5); // envia para o esp a última tensão
-        Serial.println(volt, 5);
-        delay(100);
+//         esp8266.println(volt, 5); // envia para o esp a última tensão
+//         Serial.println(volt, 5);
+//         delay(100);
         
-        if (counter==20){ //a cada 20 correntes/tensões enviadas o esp faz um post
-            counter=0;
-            delay(10000);
-            Serial.println("pause");
-            i++;
-        }
-        else{
-            //postedPoints++;
-            counter++;
-            i++;
-        }
-    }
-}
+//         if (counter==20){ //a cada 20 correntes/tensões enviadas o esp faz um post
+//             counter=0;
+//             delay(10000);
+//             Serial.println("pause");
+//             i++;
+//         }
+//         else{
+//             //postedPoints++;
+//             counter++;
+//             i++;
+//         }
+//     }
+// }

@@ -8,6 +8,7 @@
 #include <SoftwareSerial.h>
 #include <RTClib.h>
 #include <Wire.h>
+#include "DHT.h"
 
 
 #define latchPin 8       // connected to ST_CP
@@ -15,6 +16,8 @@
 #define dataPin  6       // connected to DS
 
 #define button 5         // external button, general purpose
+
+#define LDR A2 //luminosity sensor
 
 //#define DEBUG true
 // --- auxiliar vars
@@ -25,6 +28,9 @@
     extern float shunt[7];   // contains resistance values
     extern int measurementsByTension; // number of measurements for the mean 
     extern float sumOfCurrents; // variable to store the sum of currents for the mean
+    extern float humidity;
+    extern float temperature;
+    extern int luminosity;
 
 // --- utility vars ---
     extern float finalCurrent[295];     // saves current data
@@ -39,6 +45,7 @@
         extern ExternalEEPROM eep;
         extern SoftwareSerial esp8266;
         extern RTC_DS1307 rtc;
+        extern DHT dht;
 
 
 
@@ -69,4 +76,5 @@
         void scaleControl(int range); //checks the scale
         void sweepScaleControl(int range, int *i); //checks the scale changing when 'sweep' is being executed
         void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int measurementsByTension, int timestep);  //loop that controls the measurement
+        void sensorsMeasure();
 #endif

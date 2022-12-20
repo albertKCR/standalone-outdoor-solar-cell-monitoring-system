@@ -6,16 +6,11 @@
 #include "Adafruit_MCP4725.h"
 #include <SoftwareSerial.h>
 #include "SparkFun_External_EEPROM.h"
+#include "DHT.h"
+
 
   int measurementsByTension=1;
   float sumOfCurrents=0;
-
-// --- objects ---
-  Adafruit_MCP4725 dac;    // DAC object
-  ADS1256 adc;
-  ExternalEEPROM eep;
-  SoftwareSerial esp8266(3, 4);
-  RTC_DS1307 rtc;
 
 // --- pins definition ---
   #define latchPin 8       // connected to ST_CP  chip pin 12
@@ -23,6 +18,21 @@
   #define dataPin  6       // connected to DS     chip pin 14
 
   #define button 5         // multisuse button
+  
+// --- sensor pins ---
+  #define DHTPIN A1 // data pin
+  #define DHTTYPE DHT11 // type of DHT (DHT11)
+
+  float humidity;
+  float temperature;
+  int luminosity;
+// --- objects ---
+  Adafruit_MCP4725 dac;    // DAC object
+  ADS1256 adc;
+  ExternalEEPROM eep;
+  SoftwareSerial esp8266(3, 4);
+  RTC_DS1307 rtc;
+  DHT dht(DHTPIN, DHTTYPE);
 
 
 // --- utility values ---
@@ -51,8 +61,6 @@
   int rangeCounter = 0;        // current scale starts at lowest resistance  
 
   int totalPoints = 0;         // total points of reading
-
-// --- utility vars ---
    
 void CallISR();// interruption routine, detects falling edge
 
@@ -60,6 +68,8 @@ void setup() {
   delay(100);
   Serial.begin(115200);
   esp8266.begin(115200);
+  dht.begin();
+  pinMode(LDR, INPUT);
   Serial.println("booting");
 
 //--- 74HC595 pins as outputs
