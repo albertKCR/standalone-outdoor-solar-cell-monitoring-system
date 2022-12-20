@@ -74,7 +74,7 @@ void loop() {
 
   Serial.println(WiFi.localIP());
 
-  if(mySUART.available()>0){
+  //if(mySUART.available()>0){
   static bool flag = false;
   if (!flag)
   {
@@ -114,7 +114,7 @@ void loop() {
   else {
     Serial.println("[Error]");
   }
-  }
+  //}
 
 
 

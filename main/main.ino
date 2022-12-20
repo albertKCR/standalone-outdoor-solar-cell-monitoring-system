@@ -1,3 +1,5 @@
+#include <RTClib.h>
+#include <Wire.h>
 #include <Arduino.h>
 #include "ADS1256.h"
 #include "extraFunctions.h"
@@ -7,19 +9,20 @@
 
 ExternalEEPROM eep;
 SoftwareSerial esp8266(3, 4);
+RTC_DS1307 rtc;
 
 /* Keep this commented...
     THESE ARE THE PINS ON THE ARDUINO UNO YOU SHOULD WIRE THESE TO
     CLK  - pin 13
     DIN  - pin 11 (MOSI)
     DOUT - pin 12 (MISO)
-*/  int num_med=1;
-    float measures=0;
+*/  int measurementsByTension=1;
+    float sumOfCurrents=0;
 
 // --- Objects --- 
     Adafruit_MCP4725 dac;    // DAC object
     ADS1256 adc;
-    int pontosTotais;
+    //int pontosTotais;
 
 // ---  Pin names --- 
     #define latchPin 8       // connected to ST_CP  chip pin 12
@@ -86,7 +89,6 @@ void CallISR();// interruption routine, detects falling edge
 
 
 void setup() {
-  esp8266.begin(115200);
   delay(100);
   Serial.begin(115200);
   Serial.println("booting");
@@ -100,6 +102,8 @@ void setup() {
 
   digitalWrite(latchPin, HIGH);                   // LATCH pin starts ON
 //=== --- === --- === --- --- === --- === --- === --- === --- === --- --- === --- === --- === --- === ---
+
+  esp8266.begin(115200);
 
   scaleUp();
   delay(300);
@@ -123,7 +127,17 @@ void setup() {
     
   //initialize the ADS
   adc.begin();
-
+  //RTC
+  if (!rtc.begin()) {
+    Serial.println("DS1307 not found");
+    while(1);
+  }
+  if (!rtc.isrunning()) {
+    Serial.println("DS1307 working");
+    //time adjust
+    rtc.adjust(DateTime(2022, 11, 23, 11, 59, 20));
+  }
+  //----
 
    
   Serial.println("done init");
@@ -137,18 +151,12 @@ void setup() {
 
 
 void loop() {
-    esp8266.println(0.988, 1);
-    //Serial.println(totalPoints, 1);
-    delay(4000);
-    
     if(Serial.available()>0){
         int input = 0;
-        //input = Serial.read();
         Scan(input);
         Serial.println(input);
-        //input = input - 48;
-        //Serial.println(input);
         delay(1000);
+        
         if(input == 1){ // starts manual calibration
            sweep();   
            
@@ -174,6 +182,9 @@ void loop() {
         }
         else if(input==6){
           sendToESP();
+        }
+        else if(input==7){
+          autonomous();
         }
 
     }// end serial scan

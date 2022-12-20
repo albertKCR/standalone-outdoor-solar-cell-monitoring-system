@@ -165,7 +165,7 @@ void exportData( int &stop ){    // handles data exporting through serial
                 for(int i = 0; i< stop; i++){
                     readdata((i+1), volt,current,dif);
                 
-                    String voltage =String(dif,5); 
+                    String voltage =String(volt,5); 
                     voltage.replace('.',',');
 
                     Serial.print(voltage);
@@ -343,15 +343,15 @@ void sweep(){
 
         }// end checking for overflow
 
-       measures=0;
-        for (int k=0; k<num_med; k++){
+       sumOfCurrents=0;
+        for (int k=0; k<measurementsByTension; k++){
             Serial.println("loop");
-            Serial.println(num_med);
+            Serial.println(measurementsByTension);
             adc.conversion(shunt[rangeCounter]);
-            measures += adc.returnCurrent();
+            sumOfCurrents += adc.returnCurrent();
         }
         Serial.println("fora loop");
-        adc.OutputCurrent = measures/num_med;
+        adc.OutputCurrent = sumOfCurrents/measurementsByTension;
         //adc.conversion(shunt[rangeCounter]); // new reading
 
         
@@ -625,21 +625,229 @@ void voltageAdjust(){
 
     }
     Serial.end();
-	Serial.begin(38400);
+	Serial.begin(115200);
     Serial.println("Calibração concluida!");
 
 }
 
 //send the voltage and current values to the esp8266
-void sendToESP(){
-    if (esp8266.read()){
-        readdata((i+1), volt,current,dif);
-        esp8266.println(volt, 13);
-        delay(2000);
-        esp8266.println(current, 13);
-        delay(2000);
+
+/*void sendToESP(){
+    Serial.println(pontosTotais);
+    //int postedPoints=0;
+    int i=0;
+    int counter=0;
+    //esp8266.println(pontosTotais, 13);
+    float volt;
+    float current;
+    float dif;
+    while (counter<80){
+
+        readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
+    
+        esp8266.println(current, 13); // envia para o esp a último corrente
+        Serial.println(current, 13);
+        delay(100);
+        
+        esp8266.println(volt, 5); // envia para o esp a última tensão
+        Serial.println(volt, 5);
+        delay(100);
+        
+        if (counter==20){ //a cada 20 correntes/tensões enviadas o esp faz um post
+            counter=0;
+            delay(10000);
+            Serial.println("pause");
+            i++;
+        }
+        else{
+            //postedPoints++;
+            counter++;
+            i++;
+        }
     }
-    else{
-        Serial.println("wifi disconnected");
+}*/
+
+
+
+void autonomous(){
+    DateTime now = rtc.now();   //object to get the current time
+    Serial.println(now.hour(), DEC);
+    Serial.println(now.minute(), DEC);
+    while(1){
+        if((now.hour() == 12) & (now.minute() == 00)){  //check the time to make the measurement
+            autonomousSweep();  //make the measurement
+            delay(5000);
+            sendToESP();    //sends the data to google sheets
+        }
+        if(Serial.available()>0){   //sending something in the monitor serial breaks the while loop
+            break;
+        }
+    }
+}
+
+void autonomousSweep(){
+    int startVoltage=0 ,finalVoltage=2000;  //start voltage, and ending voltage
+    int timestep=35;    //timestep between voltage changes
+
+    // --- Conversion from voltage to DAC bits --- 
+    startVoltage = map(startVoltage, -500,2500,0,4095);
+    finalVoltage = map(finalVoltage  , -500,2500,0,4095);
+
+    dac.setVoltage(startVoltage,false); //updates DAC output voltage
+
+    delay(800); //wait til ammeter reach offset
+
+    adc.conversion(shunt[rangeCounter]);    //first read to check if it´s in wrong scale
+    Serial.println("Starting");
+
+    void scaleControl(int rangeCounter);    //checks the scale to starte the measure
+
+    sweepControl(startVoltage, finalVoltage, rangeCounter, measurementsByTension, timestep);    //do the measures
+    
+    Serial.println("Total Points: ");
+    Serial.println(totalPoints);
+    Serial.println(totalPoints*timestep);
+    dac.setVoltage(0x2AB, false);
+    rangeCounter = 0;
+    setScale();
+}
+
+void meanOfMeasures(int numOfMeasures){
+    sumOfCurrents=0;
+    for (int k=0; k<numOfMeasures; k++){    //will measure the current with the same voltage until k=numOfMeasures
+        adc.conversion(shunt[rangeCounter]);    //reads voltage and current
+        sumOfCurrents += adc.returnCurrent();
+    }
+    adc.OutputCurrent = sumOfCurrents/numOfMeasures; //calculate the mean of the measures
+}
+
+void scaleControl(int range){
+    while((adc.topOV() &&(range != 0)) || (adc.botOV() &&(range !=6) )  ){ // checks for wrong scale
+        if(adc.topOV()){    //check top overflow, change to inferior resistance(bigger current)
+            scaleDown();
+            delay(100);
+        }
+        else if(adc.botOV()){   //check bottom overflow, change to superior resistance(lesser current)
+            scaleUp();
+            delay(100);
+        } 
+        adc.conversion(shunt[range]);   //reads current, voltage, calculate overflow
+    }
+}
+
+void sweepScaleControl(int range, int *i){
+    while((adc.topOV() &&(range != 0)) || (adc.botOV() &&(range !=6) )  ) {   
+        if(adc.topOV()){    //check top overflow, change to inferior resistance(bigger current)
+            scaleDown();
+            i-=57;
+            dac.setVoltage(i, false);
+            delay(1000);
+        }   
+        else if(adc.botOV()){   //check bottom overflow, change to superior resistance(lesser current)
+            scaleUp();
+            i+=57;
+            dac.setVoltage(i, false);
+            delay(1000);
+        }
+        adc.conversion(shunt[range]);   //reads current, voltage, calculate overflow 
+    }
+}
+
+void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int measurementsByTension, int timestep){
+    unsigned long timer = 0;    //time step counter
+    for(int i = startVoltage; i< finalVoltage; i+=14 ){ //i+= 14; // 10mV changes
+
+        sweepScaleControl(rangeCounter, i); //check the scale and avoid voltage peaks
+        meanOfMeasures(measurementsByTension);  //mean of the current measures
+
+        timer = millis();   //start timing
+        
+        savedata((totalPoints+1) , adc.returnVoltage(),adc.returnCurrent() , adc.diffe );   //save readed data
+
+        ++totalPoints;  //points readed ++
+    
+        dac.setVoltage(i,false);    //updates DAC output voltage
+
+        // --- Timestep control ---
+        while((millis() - timer) < timestep){  // waits til next step
+            if(!digitalRead(button)) {
+                Serial.println("sweep abortado");
+                i = finalVoltage;   // forced exit from the for loop
+                timer = 0;  // exit while
+            }
+        }
+    }
+}
+
+/*
+void sendToESP(){
+    Serial.println(pontosTotais);
+    int postedPoints=0;
+    int i=0;
+    int counter=0;
+    //esp8266.println(pontosTotais, 13);
+    delay(500);
+    float volt;
+    float current;
+    float dif;
+    while (counter<80){
+
+        readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
+        String voltS(volt, 5);
+        String currentS(volt, 13);
+        esp8266.println(currentS); // envia para o esp a último corrente
+        Serial.println(currentS);
+        delay(200);
+        
+        esp8266.println(voltS); // envia para o esp a última tensão
+        Serial.println(voltS);
+        delay(200);
+        
+        if (postedPoints==20){ //a cada 20 correntes e tensões enviadas o esp faz um post
+            postedPoints=0;
+            delay(10000);
+        }
+        postedPoints++;
+        counter++;
+        i++;
+    }
+}*/
+
+void sendToESP(){
+    Serial.println(totalPoints);
+
+    int postedPoints=0;
+    int delayCounter=0;
+    float volt;
+    float current;
+    float dif;
+    
+    while (postedPoints<totalPoints){
+
+        readdata((postedPoints+1), volt,current,dif);  //acces in the EEPROM the data of voltage and current
+        String currentVoltage = String(current, 13)+","+String(volt, 5);    //transform the data in one string
+        esp8266.println(currentVoltage); // send to esp one string with voltage and current
+        Serial.println(currentVoltage);
+        delay(1000);    //little delay to avoid data lost for the esp
+        
+        /*
+        esp8266.println(current, 13); // envia para o esp a último corrente
+        Serial.println(current, 13);
+        delay(100);
+        
+        esp8266.println(volt, 5); // envia para o esp a última tensão
+        Serial.println(volt, 5);
+        delay(100);*/
+        
+        if (delayCounter==20){   //every 20 current/voltage sended, esp do a post that need a delay
+            delayCounter=0;
+            delay(10000);   //wait for esp do the post
+            Serial.println("pause");
+            postedPoints++;
+        }
+        else{
+            delayCounter++;
+            postedPoints++;
+        }
     }
 }

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"name": "IC-outdoor-solar-cell-info-collector",
+			"path": "../../../IC-outdoor-solar-cell-info-collector"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"vector": "cpp",
+			"fstream": "cpp"
+		}
+	}
+}
