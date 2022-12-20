@@ -562,7 +562,6 @@ void calibrating(){
     }// end while loop
 
 }// end function
-//=== --- === --- === --- --- === --- === --- === --- === --- === --- --- === --- === --- === --- === ---
 
 void savedata(int addres,float volt, float current,float dif){
     addres = 1 + ((addres-1)*12);
@@ -572,7 +571,6 @@ void savedata(int addres,float volt, float current,float dif){
     addres +=4;
     eep.put(addres, dif);
 }
-//=== --- === --- === --- --- === --- === --- === --- === --- === --- --- === --- === --- === --- === ---
 
 void readdata(int addres,float &volt, float &current,float &dif){
     addres = 1 + ((addres-1)*12);
@@ -589,7 +587,6 @@ float getDif(int addres){
     addres =((addres -1)*12)+9;
     eep.get(addres,data);
     return data;
-
 }
 
 void voltageAdjust(){
@@ -600,13 +597,10 @@ void voltageAdjust(){
     bool loop = true;
 
     while(loop){
-
         if(Serial.available()>0)loop =false;
-        
         adc.average();
         Serial.print("channel 2 voltage:");
         Serial.println((2.5 + adc.val2),5);
-
     }
 
     for(int i=0; i<7; i++){
@@ -616,58 +610,15 @@ void voltageAdjust(){
         Serial.println(adc.val2,6);
         scaleUp();
         delay(400);
-        
     }
 
     for(int i= 0; i<7; i++){
-
         eep.get((60000 +(i*4)) , adc.correction[i]);
-
     }
     Serial.end();
 	Serial.begin(115200);
     Serial.println("Calibração concluida!");
-
 }
-
-//send the voltage and current values to the esp8266
-
-/*void sendToESP(){
-    Serial.println(pontosTotais);
-    //int postedPoints=0;
-    int i=0;
-    int counter=0;
-    //esp8266.println(pontosTotais, 13);
-    float volt;
-    float current;
-    float dif;
-    while (counter<80){
-
-        readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
-    
-        esp8266.println(current, 13); // envia para o esp a último corrente
-        Serial.println(current, 13);
-        delay(100);
-        
-        esp8266.println(volt, 5); // envia para o esp a última tensão
-        Serial.println(volt, 5);
-        delay(100);
-        
-        if (counter==20){ //a cada 20 correntes/tensões enviadas o esp faz um post
-            counter=0;
-            delay(10000);
-            Serial.println("pause");
-            i++;
-        }
-        else{
-            //postedPoints++;
-            counter++;
-            i++;
-        }
-    }
-}*/
-
-
 
 void autonomous(){
     DateTime now = rtc.now();   //object to get the current time
@@ -779,8 +730,8 @@ void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int meas
     }
 }
 
-/*
-void sendToESP(){
+
+void sendToESP1(){
     Serial.println(pontosTotais);
     int postedPoints=0;
     int i=0;
@@ -811,7 +762,7 @@ void sendToESP(){
         counter++;
         i++;
     }
-}*/
+}
 
 void sendToESP(){
     Serial.println(totalPoints);
@@ -824,22 +775,13 @@ void sendToESP(){
     
     while (postedPoints<totalPoints){
 
-        readdata((postedPoints+1), volt,current,dif);  //acces in the EEPROM the data of voltage and current
-        String currentVoltage = String(current, 13)+","+String(volt, 5);    //transform the data in one string
+        readdata((postedPoints+1), volt,current,dif);  //access in the EEPROM the data of voltage and current
+        String currentVoltage = String(current, 13) + "," + String(volt, 5);    //transform the data in one string
         esp8266.println(currentVoltage); // send to esp one string with voltage and current
         Serial.println(currentVoltage);
-        delay(1000);    //little delay to avoid data lost for the esp
+        delay(1000);    //delay to avoid data lost for esp
         
-        /*
-        esp8266.println(current, 13); // envia para o esp a último corrente
-        Serial.println(current, 13);
-        delay(100);
-        
-        esp8266.println(volt, 5); // envia para o esp a última tensão
-        Serial.println(volt, 5);
-        delay(100);*/
-        
-        if (delayCounter==20){   //every 20 current/voltage sended, esp do a post that need a delay
+        if (delayCounter==20){   //every 20 strings sended, esp do a post that need a delay
             delayCounter=0;
             delay(10000);   //wait for esp do the post
             Serial.println("pause");
@@ -848,6 +790,43 @@ void sendToESP(){
         else{
             delayCounter++;
             postedPoints++;
+        }
+    }
+}
+
+//send the voltage and current values to the esp8266
+
+void sendToESP2(){
+    Serial.println(pontosTotais);
+    //int postedPoints=0;
+    int i=0;
+    int counter=0;
+    //esp8266.println(pontosTotais, 13);
+    float volt;
+    float current;
+    float dif;
+    while (counter<80){
+
+        readdata((i+1), volt,current,dif); // acessa na memória os últimos dados de tensao e corrente
+    
+        esp8266.println(current, 13); // envia para o esp a último corrente
+        Serial.println(current, 13);
+        delay(100);
+        
+        esp8266.println(volt, 5); // envia para o esp a última tensão
+        Serial.println(volt, 5);
+        delay(100);
+        
+        if (counter==20){ //a cada 20 correntes/tensões enviadas o esp faz um post
+            counter=0;
+            delay(10000);
+            Serial.println("pause");
+            i++;
+        }
+        else{
+            //postedPoints++;
+            counter++;
+            i++;
         }
     }
 }

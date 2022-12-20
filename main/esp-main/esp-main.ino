@@ -2,32 +2,29 @@
 #include "HTTPSRedirect.h"
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySUART(4, 5);  //D2, D1
-
+SoftwareSerial arduinoSUART(4, 5);  //RX, TX
 HTTPSRedirect* client = nullptr;
-const char* GScriptId   = "AKfycbzJ__WvYpeAAznt4LC4DscsHw7U8C2LHCng5COQcLsHr3VXBwalZAJjD4QDmNQG19Bw";
-//-----------------------------------------------------------------
+int stringCounter = 0;
 
-
+//url to access the google sheet
+const char* GScriptId   = "AKfycbxrtin5P-VncJmSKlx2dsphOA4bplVVLjcx_A4ZB8jCMshNo4t5QQuAGFWkii0A-NxY";
 String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
 String payload = "";
+const char* host = "script.google.com";
+const int httpsPort = 443;
+String url = String("/macros/s/") + GScriptId + "/exec?cal";
 
-const char* host        = "script.google.com";
-const int   httpsPort   = 443;
-String      url         = String("/macros/s/") + GScriptId + "/exec?cal";
-int voltage = 0;
-int current = 1;
-char myRPM[20];
+//array that store the received values of current and voltage
+String toSendData[40];
+
 void setup() {
-
   Serial.begin(115200);
-  mySUART.begin(115200);
-  Serial.println("aaaaa");
-
+  arduinoSUART.begin(115200);
+  
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
-
   delay(100);
-  WiFi.begin("iPhone de Albert", "12345678");
+  WiFi.begin("UTFPR-Projetos", "pNU9cnpPZ$tM");
+  Serial.println(WiFi.macAddress());
 
   Serial.print("Connecting");
   while (WiFi.status() != WL_CONNECTED)
@@ -68,61 +65,52 @@ void setup() {
   delete client;
   client = nullptr;
   Serial.println("Setup done");
+
 }
 
 void loop() {
+  if(arduinoSUART.available()>0){ //check if arduino sended data
 
-  if (WiFi.status() != WL_CONNECTED){
-    mySUART.println(0);
-  }
-  else{
-  mySUART.println(1);
-  Serial.println(WiFi.localIP());
+    static bool flag = false;
+    if (!flag){
+      client = new HTTPSRedirect(httpsPort);
+      client->setInsecure();
+      flag = true;
+      client->setPrintResponseBody(true);
+      client->setContentTypeHeader("application/json");
+    }
+    if (client != nullptr) {
+      if (!client->connected()) {
+        client->connect(host, httpsPort);
+      }
+    }
+    else {
+      Serial.println("[Error]");
+    }
 
-  if(mySUART.available()>0){
-  static bool flag = false;
-  if (!flag)
-  {
-    client = new HTTPSRedirect(httpsPort);
-    client->setInsecure();
-    flag = true;
-    client->setPrintResponseBody(true);
-    client->setContentTypeHeader("application/json");
-  }
-  if (client != nullptr) {
-    if (!client->connected()) {
-      client->connect(host, httpsPort);
+    stringCounter = 0;
+    for (int i = 0; i < 40; i++){
+      if(!(arduinoSUART.available()>0)) break; //if arduino stop sending data, breaks the for loop
+      String receivedData = arduinoSUART.readString(); //read the string send by arduino
+      Serial.println(receivedData);
+      toSendData[i] = receivedData;
+      stringCounter++;
+    }
+
+    payload = payload_base + "\"" + toSendData[0];
+    for (int i = 1; i < stringCounter; i++){
+      payload = payload + "," + toSendData[i];
+    }
+    payload = payload + "\"}";
+
+    //payload = payload_base + "\"" + toSendData[0] + "," + toSendData[1] + "," + toSendData[2] + "," + toSendData[3] + "," + toSendData[4] + "," + toSendData[5] + "," + toSendData[6] + "," + toSendData[7] + "," + toSendData[8] + "," + toSendData[9] +  "," + toSendData[10] + "," + toSendData[11] + "," + toSendData[12] + "," + toSendData[13] + "," + toSendData[14] + "," + toSendData[15] + "," + toSendData[16] + "," + toSendData[17] + "," + toSendData[18] + "," + toSendData[19] +  "," + toSendData[20] +  "," + toSendData[21] +  "," + toSendData[22] +  "," + toSendData[23] +  "," + toSendData[24] +  "," + toSendData[25] +  "," + toSendData[26] +  "," + toSendData[27] +  "," + toSendData[28] +  "," + toSendData[29] +  "," + toSendData[30] +  "," + toSendData[31] +  "," + toSendData[32] +  "," + toSendData[33] +  "," + toSendData[34] +  "," + toSendData[35] +  "," + toSendData[36] +  "," + toSendData[37] +  "," + toSendData[38] +  "," + toSendData[39] + "\"}";
+    Serial.println("Sending...");
+  
+    if (client->POST(url, host, payload)) {
+      Serial.println(" [OK]");
+    }
+    else {
+      Serial.println("[Error]");
     }
   }
-  else {
-    Serial.println("[Error]");
-  }
-  byte m = mySUART.readBytesUntil('\n', myRPM, 20);
-  int l = m;
-  myRPM[l] = '\0';
-  Serial.println(myRPM);
-  float rpm = atof(myRPM);
-  Serial.println(rpm, 12);
-  //Serial.println(myRPM);
-  String myRPM1(rpm, 12);
-  Serial.println(myRPM1);
-
-  String x = "0.298767123456123";
-  delay(500);
-  payload = payload_base + "\"" + x + "," + myRPM1 + "\"}";
-
-  Serial.println("Enviando...");
-  
-  if (client->POST(url, host, payload)) {
-    Serial.println(" [OK]");
-  }
-  else {
-    Serial.println("[Error]");
-  }
-  }
-
-  }
-
-
-  delay(1000);
 }
