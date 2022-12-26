@@ -621,14 +621,13 @@ void voltageAdjust(){
 }
 
 void autonomous(){
-    DateTime now = rtc.now();   //object to get the current time
-    Serial.println(now.hour(), DEC);
-    Serial.println(now.minute(), DEC);
+    int hour, minute;
     while(1){
-        if((now.hour() == 12) & (now.minute() == 00)){  //check the time to make the measurement
+        if((hour == 12) & (minute == 00)){  //check the time to make the measurement
             autonomousSweep();  //make the measurement
             delay(5000);
             sensorsMeasure();   //reads the temperature and humidity sensor
+            connectToInternet();
             sendToSheet();    //sends the data to google sheets
         }
         if(Serial.available()>0){   //sending something in the monitor serial breaks the while loop
@@ -697,7 +696,7 @@ void scaleControl(int range){
 }
 
 void sweepScaleControl(int range, int *i){
-    while((adc.topOV() &&(range != 0)) || (adc.botOV() &&(range !=6) )  ) {   
+    /*while((adc.topOV() &&(rangeCounter != 0)) || (adc.botOV() &&(rangeCounter !=6) )  ) {   
         if(adc.topOV()){    //check top overflow, change to inferior resistance(bigger current)
             scaleDown();
             i-=57;
@@ -710,15 +709,30 @@ void sweepScaleControl(int range, int *i){
             dac.setVoltage(i, false);
             delay(1000);
         }
-        adc.conversion(shunt[range]);   //reads current, voltage, calculate overflow 
-    }
+        adc.conversion(shunt[rangeCounter]);   //reads current, voltage, calculate overflow 
+    }*/
 }
 
 void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int measurementsByTension, int timestep){
     unsigned long timer = 0;    //time step counter
     for(int i = startVoltage; i< finalVoltage; i+=14 ){ //i+= 14; // 10mV changes
 
-        sweepScaleControl(rangeCounter, i); //check the scale and avoid voltage peaks
+        //check the scale and avoid voltage peaks
+        while((adc.topOV() &&(rangeCounter != 0)) || (adc.botOV() &&(rangeCounter !=6) )  ) {   
+        if(adc.topOV()){    //check top overflow, change to inferior resistance(bigger current)
+            scaleDown();
+            i-=57;
+            dac.setVoltage(i, false);
+            delay(1000);
+        }   
+        else if(adc.botOV()){   //check bottom overflow, change to superior resistance(lesser current)
+            scaleUp();
+            i+=57;
+            dac.setVoltage(i, false);
+            delay(1000);
+        }
+        adc.conversion(shunt[rangeCounter]);   //reads current, voltage, calculate overflow 
+    }
         meanOfMeasures(measurementsByTension);  //mean of the current measures
 
         timer = millis();   //start timing
@@ -740,36 +754,18 @@ void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int meas
     }
 }
 
-void sendToSheet(){
-    Serial.println(totalPoints);
+void connectToInternet(){
+    WiFi.begin("UTFPR-Projetos", "pNU9cnpPZ$tM");
+    Serial.println(WiFi.macAddress());
 
-    int postedPoints=0;
-    int delayCounter=0;
-    float volt;
-    float current;
-    float dif;
-    
-    while (postedPoints<totalPoints){
-
-        readdata((postedPoints+1), volt,current,dif);  //access in the EEPROM the data of voltage and current
-        String currentVoltage = String(current, 13) + "," + String(volt, 5);    //transform the data in one string
-        esp8266.println(currentVoltage); // send to esp one string with voltage and current
-        Serial.println(currentVoltage);
-        delay(1000);    //delay to avoid data lost for esp
-        
-        if (delayCounter==20){   //every 20 strings sended, esp do a post that need a delay
-            delayCounter=0;
-            delay(10000);   //wait for esp do the post
-            Serial.println("pause");
-            postedPoints++;
-        }
-        else{
-            delayCounter++;
-            postedPoints++;
-        }
+    Serial.print("Connecting");
+    while (WiFi.status() != WL_CONNECTED){
+      delay(500);
+      Serial.print(".");
     }
-    String sensorsValues = String(humidity, 3) + "," + String(temperature, 3) + "," + String(luminosity);    //transform the sensors data in one string
-    esp8266.println(sensorsValues);
+
+    Serial.print("Connected, IP address: ");
+    Serial.println(WiFi.localIP());
 }
 
 void sendToSheet(){
@@ -781,11 +777,11 @@ void sendToSheet(){
 
     // --- URL to access the google sheet ---
     const char* GScriptId   = "AKfycbxrtin5P-VncJmSKlx2dsphOA4bplVVLjcx_A4ZB8jCMshNo4t5QQuAGFWkii0A-NxY";
-    String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
-    String payload = "";
-    const char* host = "script.google.com";
+    String payload_base =  "\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
     const int httpsPort = 443;
-    String url = String("/macros/s/") + GScriptId + "/exec?cal";
+
+    String url = String("https://script.google.com") + String("/macros/s/") + GScriptId + "/exec?cal" + payload_base;
+
     // ---
     while(totalPoints>0){
         totalPoints = totalPoints-20;
@@ -798,19 +794,26 @@ void sendToSheet(){
                 loadCounter++;
                 stringCounter++;
             }
-            // the payload will be constructed according to the received data
-            payload = payload_base + "\"" + toSendData[0];
+            // the url will be constructed according to the received data
+            url = url + "\"" + toSendData[0];
             for (int i = 1; i < loadCounter; i++){
-                payload = payload + "," + toSendData[i];
-            }
-            payload = payload + "\"}";
+                url = url + "," + toSendData[i];
+            }            
 
-            if (client->POST(url, host, payload)){ //Send the data through the google API
-                Serial.println(" [OK]");
+            http.begin(url.c_str()); //Specify the URL and certificate
+            http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+            int httpCode = http.GET();
+            String payload;
+            if (httpCode > 0) { //Check for the returning code
+              payload = http.getString();
+
+              Serial.println(httpCode);
+              Serial.println(payload);
             }
             else {
-                Serial.println("[Error]");
+              Serial.println("Error on HTTP request");
             }
+            http.end();
         }
         else{
             for (int i = 0; i < 20-abs(totalPoints-20); i++){
@@ -820,20 +823,44 @@ void sendToSheet(){
                 loadCounter++;
                 stringCounter++;
             }
-            // the payload will be constructed according to the received data
-            payload = payload_base + "\"" + toSendData[0];
+            // the url will be constructed according to the received data
+            url = url + "\"" + toSendData[0];
             for (int i = 1; i < loadCounter; i++){
-                payload = payload + "," + toSendData[i];
+                url = url + "," + toSendData[i];
             }
-            payload = payload + "\"}";
 
-            if (client->POST(url, host, payload)){ //Send the data through the google API
-                Serial.println(" [OK]");
+            http.begin(url.c_str()); //Specify the URL and certificate
+            http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+            int httpCode = http.GET();
+            String payload;
+            if (httpCode > 0) { //Check for the returning code
+              payload = http.getString();
+
+              Serial.println(httpCode);
+              Serial.println(payload);
             }
             else {
-                Serial.println("[Error]");
+              Serial.println("Error on HTTP request");
             }
+            http.end();
 
         }
+        String url = String("https://script.google.com") + String("/macros/s/") + GScriptId + "/exec?cal" + payload_base;
     }
+    url = url + "\"" + temperature + "," + luminosity + "," + humidity + "\"}";
+    
+    http.begin(url.c_str()); //Specify the URL and certificate
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    int httpCode = http.GET();
+    String payload;
+    if (httpCode > 0) { //Check for the returning code
+      payload = http.getString();
+      Serial.println(httpCode);
+      Serial.println(payload);
+    }
+    else {
+      Serial.println("Error on HTTP request");
+    }
+    http.end();
+    totalPoints=0;
 }

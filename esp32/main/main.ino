@@ -1,11 +1,11 @@
-#include <RTClib.h>
 #include <Wire.h>
-#include <Arduino.h>
 #include "ADS1256.h"
+#include "WiFi.h"
 #include "extraFunctions.h"
 #include "Adafruit_MCP4725.h"
 #include "SparkFun_External_EEPROM.h"
 #include "DHT.h"
+#include <HTTPClient.h>
 
 // --- pins definition ---
   #define latchPin 27       // connected to ST_CP
@@ -24,7 +24,7 @@
   ADS1256 adc;
   ExternalEEPROM eep;
   DHT dht(DHTPIN, DHTTYPE);
-  HTTPSRedirect* client = nullptr;
+  HTTPClient http;
 
 
 // --- utility values ---
@@ -59,7 +59,6 @@ void CallISR();// interruption routine, detects falling edge
 void setup() {
   delay(100);
   Serial.begin(115200);
-  esp8266.begin(115200);
   dht.begin();
   pinMode(LDR, INPUT);
   Serial.println("booting");

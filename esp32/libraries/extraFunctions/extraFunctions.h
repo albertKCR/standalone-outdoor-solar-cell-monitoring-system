@@ -1,13 +1,14 @@
 #ifndef EXTRAFUNCTIONS_H
 #define EXTRAFUNCTIONS_H
 
-#include "Arduino.h"
 #include "Adafruit_MCP4725.h"
 #include "ADS1256.h"
 #include "SparkFun_External_EEPROM.h"
 #include <Wire.h>
 #include "DHT.h"
 #include <String.h>
+#include "WiFi.h"
+#include <HTTPClient.h>
 
 
 #define latchPin 27       // connected to ST_CP
@@ -33,19 +34,13 @@
     extern float temperature;
     extern int luminosity;
     extern int rangeCounter;
-
-// --- utility vars ---
-    extern float finalCurrent[295];     // saves current data
-    extern float finalVoltage[295];     // saves voltage data
-
-
     
 // --- objects --- 
         extern Adafruit_MCP4725 dac;
         extern ADS1256 adc;
         extern ExternalEEPROM eep;
         extern DHT dht;
-        extern HTTPSRedirect* client = nullptr;
+        extern HTTPClient http;
 
 
       // --- Additional functions ---  
@@ -75,5 +70,7 @@
         void scaleControl(int range); //checks the scale
         void sweepScaleControl(int range, int *i); //checks the scale changing when 'sweep' is being executed
         void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int measurementsByTension, int timestep);  //loop that controls the measurement
-        void sensorsMeasure();
+        void sensorsMeasure();  //read the dht and ldr
+        void connectToInternet();
+        void sendToSheet();
 #endif

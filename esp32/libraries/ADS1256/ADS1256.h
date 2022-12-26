@@ -5,7 +5,6 @@
 #include "ADS_DATA.h"
 #include "Arduino.h"
 #include <SPI.h>
-#include <digitalWriteFast.h>
 #include "SparkFun_External_EEPROM.h"
 extern int rangeCounter;
 extern ExternalEEPROM eep;
