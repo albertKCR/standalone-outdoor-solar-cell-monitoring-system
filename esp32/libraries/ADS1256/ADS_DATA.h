@@ -7,7 +7,7 @@
 
 /* ADS1248 Register (see p42 for Register Map) */
 
-#define   STATUS  0x00 //Status Control Register 0
+//#define   STATUS  0x00 //Status Control Register 0
 #define   MUX     0x01 //Multiplexer Control Register 0
 #define   ADCON   0x02 //A/D Control Register 0
 #define   DRATE   0x03 //A/D Data Rate Control Register 0

@@ -9,6 +9,7 @@
 #include <String.h>
 #include "WiFi.h"
 #include <HTTPClient.h>
+#include <NTPClient.h>
 
 
 #define latchPin 27       // connected to ST_CP
@@ -41,6 +42,8 @@
         extern ExternalEEPROM eep;
         extern DHT dht;
         extern HTTPClient http;
+        extern WiFiUDP udp;
+        extern NTPClient ntp;
 
 
       // --- Additional functions ---  

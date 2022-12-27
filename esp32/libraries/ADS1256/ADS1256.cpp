@@ -1,4 +1,5 @@
 #include "ADS1256.h"
+#include "ADS_DATA.h"
 
 ADS1256::ADS1256()
 {

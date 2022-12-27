@@ -6,6 +6,7 @@
 #include "SparkFun_External_EEPROM.h"
 #include "DHT.h"
 #include <HTTPClient.h>
+#include <NTPClient.h>
 
 // --- pins definition ---
   #define latchPin 27       // connected to ST_CP
@@ -25,6 +26,8 @@
   ExternalEEPROM eep;
   DHT dht(DHTPIN, DHTTYPE);
   HTTPClient http;
+  WiFiUDP udp;
+  NTPClient ntp(udp, "a.st1.ntp.br", -3 * 3600, 60000);
 
 
 // --- utility values ---
@@ -60,6 +63,8 @@ void setup() {
   delay(100);
   Serial.begin(115200);
   dht.begin();
+  ntp.begin();
+  ntp.forceUpdate();
   pinMode(LDR, INPUT);
   Serial.println("booting");
 

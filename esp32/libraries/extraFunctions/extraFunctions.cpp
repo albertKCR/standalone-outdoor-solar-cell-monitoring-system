@@ -622,15 +622,20 @@ void voltageAdjust(){
 
 void autonomous(){
     int hour, minute;
+    connectToInternet();
     while(1){
-        if((hour == 12) & (minute == 00)){  //check the time to make the measurement
+        ntp.update();
+        if((ntp.getHours() == 12) && (ntp.getMinutes() == 00)){  //check the time to make the measurement
             autonomousSweep();  //make the measurement
             delay(5000);
             sensorsMeasure();   //reads the temperature and humidity sensor
-            connectToInternet();
             sendToSheet();    //sends the data to google sheets
         }
         if(Serial.available()>0){   //sending something in the monitor serial breaks the while loop
+            break;
+        }
+        if(WiFi.status() != WL_CONNECTED){
+            Serial.println("Lost internet connection");
             break;
         }
     }
