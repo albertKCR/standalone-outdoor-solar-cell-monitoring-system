@@ -8,7 +8,8 @@
 #include "DHT.h"
 #include <String.h>
 #include "WiFi.h"
-#include <HTTPClient.h>
+#include "WiFi.h"
+#include "HTTPSRedirect.h"
 #include <NTPClient.h>
 
 
@@ -35,15 +36,26 @@
     extern float temperature;
     extern int luminosity;
     extern int rangeCounter;
+
+//URL to access the google sheet
+    const char* GScriptId   = "AKfycbyn4mBgOtGKilT11P1RbFAfTR9Eo_A_rrZrnz2an1NAiAQg7wc4zd_gm23lv09iTxxU";
+    String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
+    String payload = "";
+    const char* host = "script.google.com";
+    const int httpsPort = 443;
+    String url = String("/macros/s/") + GScriptId + "/exec?cal";
+
+//array that store the received values of current and voltage
+    String toSendData[40];
     
 // --- objects --- 
         extern Adafruit_MCP4725 dac;
         extern ADS1256 adc;
         extern ExternalEEPROM eep;
         extern DHT dht;
-        extern HTTPClient http;
         extern WiFiUDP udp;
         extern NTPClient ntp;
+        extern HTTPSRedirect* client = nullptr;
 
 
       // --- Additional functions ---  

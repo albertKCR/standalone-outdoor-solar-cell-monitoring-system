@@ -5,7 +5,7 @@
 #include "Adafruit_MCP4725.h"
 #include "SparkFun_External_EEPROM.h"
 #include "DHT.h"
-#include <HTTPClient.h>
+#include "HTTPSRedirect.h"
 #include <NTPClient.h>
 
 // --- pins definition ---
@@ -25,8 +25,8 @@
   ADS1256 adc;
   ExternalEEPROM eep;
   DHT dht(DHTPIN, DHTTYPE);
-  HTTPClient http;
   WiFiUDP udp;
+  HTTPSRedirect* client = nullptr;
   NTPClient ntp(udp, "a.st1.ntp.br", -3 * 3600, 60000);
 
 

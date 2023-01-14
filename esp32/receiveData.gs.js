@@ -3,7 +3,6 @@ var str = "";
  
 function doPost(e) 
 {
- 
   var parsedData;
    
   try
@@ -27,25 +26,27 @@ function doPost(e)
 
     var date_now = Utilities.formatDate(new Date(), 'America/Sao_Paulo', "dd/MM/yyyy");
     var time_now = Utilities.formatDate(new Date(), 'America/Sao_Paulo', "hh:mm:ss a");
-
+     
     switch (parsedData.command) {
        
-      case "insert_row":
+       case "insert_row":
           
-        sheet.insertRows(2);
+          sheet.insertRows(2);
           
-        sheet.getRange('A2').setValue(date_now);
-        sheet.getRange('B2').setValue(time_now);
-        sheet.getRange('C2').setValue(voltage);  
-        sheet.getRange('D2').setValue(current);  
+          sheet.getRange('A2').setValue(date_now);
+          sheet.getRange('B2').setValue(time_now);
+          sheet.getRange('C2').setValue(voltage);  
+          sheet.getRange('D2').setValue(current);  
           
-        str = "Success";
-        SpreadsheetApp.flush();
-        break;
+          str = "Success";
+          SpreadsheetApp.flush();
+          break;
           
       case "append_row":
-    
+      
         for (let i = 0; i < dataArr.length; i++){
+          //var value0 = dataArr [i];
+          //var value1 = dataArr [1];
           var publish_array = new Array();
           publish_array [0] = date_now;
           publish_array [1] = time_now;
@@ -54,9 +55,24 @@ function doPost(e)
           sheet.appendRow(publish_array);
           i=i+1;
         }
-        str = "Success";
-        SpreadsheetApp.flush();
-        break;     
+          
+         str = "Success";
+         SpreadsheetApp.flush();
+          break;
+
+      case "sensor":
+          var publish_array = new Array();
+          publish_array [0] = date_now;
+          publish_array [1] = time_now;
+          publish_array [2] = dataArr [0];
+          publish_array [3] = dataArr [1];
+          publish_array [4] = dataArr [2];
+          sheet.appendRow(publish_array);
+          
+          str = "Success";
+          SpreadsheetApp.flush();
+          break;     
+  
     }
      
     return ContentService.createTextOutput(str);

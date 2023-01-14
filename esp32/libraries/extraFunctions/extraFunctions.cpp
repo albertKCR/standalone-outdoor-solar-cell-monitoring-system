@@ -636,7 +636,8 @@ void autonomous(){
         }
         if(WiFi.status() != WL_CONNECTED){
             Serial.println("Lost internet connection");
-            break;
+            Serial.println("Trying to reconnect");
+            connectToInternet();
         }
     }
 }
@@ -771,6 +772,37 @@ void connectToInternet(){
 
     Serial.print("Connected, IP address: ");
     Serial.println(WiFi.localIP());
+
+     // --- HTTPS Redirect Setup ---
+  client = new HTTPSRedirect(httpsPort);
+  client->setInsecure();
+  client->setPrintResponseBody(true);
+  client->setContentTypeHeader("application/json");
+  Serial.print("Connecting to Google...");
+
+  bool flag = false;
+  for (int i = 0; i < 5; i++)
+  {
+    int retval = client->connect(host, httpsPort);
+    if (retval == 1)
+    {
+      flag = true;
+      Serial.println("[OK]");
+      break;
+    }
+    else
+      Serial.println("[Error]");
+  }
+  if (!flag)
+  {
+    Serial.print("[Error]");
+    Serial.println(host);
+    return;
+  }
+  delete client;
+  client = nullptr;
+  Serial.println("Setup done");
+  // ---
 }
 
 void sendToSheet(){
@@ -780,92 +812,87 @@ void sendToSheet(){
     float current;
     float dif;
 
-    // --- URL to access the google sheet ---
-    const char* GScriptId   = "AKfycbxrtin5P-VncJmSKlx2dsphOA4bplVVLjcx_A4ZB8jCMshNo4t5QQuAGFWkii0A-NxY";
-    String payload_base =  "\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
-    const int httpsPort = 443;
-
-    String url = String("https://script.google.com") + String("/macros/s/") + GScriptId + "/exec?cal" + payload_base;
-
-    // ---
     while(totalPoints>0){
-        totalPoints = totalPoints-20;
-        String toSendData[20];
+        totalPoints = totalPoints-40;
         if (totalPoints>0){
-            for (int i = 0; i < 20; i++){
+
+            // --- HTTPS protocol ---
+            static bool flag = false;
+            if (!flag){
+              client = new HTTPSRedirect(httpsPort);
+              client->setInsecure();
+              flag = true;
+              client->setPrintResponseBody(true);
+              client->setContentTypeHeader("application/json");
+            }
+            if (client != nullptr) {
+              if (!client->connected()) {
+                client->connect(host, httpsPort);
+              }
+            }
+            else {
+              Serial.println("[Error]");
+            }
+            // ---
+
+            for (int i = 0; i < 40; i++){
                 readdata((stringCounter+1), volt,current,dif);  //access in the EEPROM the data of voltage and current
                 String currentVoltage = String(current, 13) + "," + String(volt, 5);    //transform the data in one string
                 toSendData[i] = currentVoltage;
                 loadCounter++;
                 stringCounter++;
             }
-            // the url will be constructed according to the received data
-            url = url + "\"" + toSendData[0];
-            for (int i = 1; i < loadCounter; i++){
-                url = url + "," + toSendData[i];
-            }            
 
-            http.begin(url.c_str()); //Specify the URL and certificate
-            http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-            int httpCode = http.GET();
-            String payload;
-            if (httpCode > 0) { //Check for the returning code
-              payload = http.getString();
+            // the payload will be constructed according to the received data
+            payload = payload_base + "\"" + toSendData[0];
+            for (int i = 1; i < stringCounter; i++){
+              payload = payload + "," + toSendData[i];
+            }
+            payload = payload + "\"}";          
 
-              Serial.println(httpCode);
-              Serial.println(payload);
+            Serial.println("Sending...");
+
+            if (client->POST(url, host, payload)){ //Send the data through the google API
+              Serial.println(" [OK]");
             }
             else {
-              Serial.println("Error on HTTP request");
+              Serial.println("[Error]");
             }
-            http.end();
         }
         else{
-            for (int i = 0; i < 20-abs(totalPoints-20); i++){
+            for (int i = 0; i < 40-abs(totalPoints); i++){
                 readdata((stringCounter+1), volt,current,dif);  //access in the EEPROM the data of voltage and current
                 String currentVoltage = String(current, 13) + "," + String(volt, 5);    //transform the data in one string
                 toSendData[i] = currentVoltage;
                 loadCounter++;
                 stringCounter++;
             }
-            // the url will be constructed according to the received data
-            url = url + "\"" + toSendData[0];
-            for (int i = 1; i < loadCounter; i++){
-                url = url + "," + toSendData[i];
+            // the payload will be constructed according to the received data
+            payload = payload_base + "\"" + toSendData[0];
+            for (int i = 1; i < stringCounter; i++){
+              payload = payload + "," + toSendData[i];
             }
+            payload = payload + "\"}";
 
-            http.begin(url.c_str()); //Specify the URL and certificate
-            http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-            int httpCode = http.GET();
-            String payload;
-            if (httpCode > 0) { //Check for the returning code
-              payload = http.getString();
-
-              Serial.println(httpCode);
-              Serial.println(payload);
+            Serial.println("Sending...");
+            
+            if (client->POST(url, host, payload)){ //Send the data through the google API
+              Serial.println(" [OK]");
             }
             else {
-              Serial.println("Error on HTTP request");
+              Serial.println("[Error]");
             }
-            http.end();
-
         }
-        String url = String("https://script.google.com") + String("/macros/s/") + GScriptId + "/exec?cal" + payload_base;
     }
-    url = url + "\"" + temperature + "," + luminosity + "," + humidity + "\"}";
-    
-    http.begin(url.c_str()); //Specify the URL and certificate
-    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-    int httpCode = http.GET();
-    String payload;
-    if (httpCode > 0) { //Check for the returning code
-      payload = http.getString();
-      Serial.println(httpCode);
-      Serial.println(payload);
-    }
-    else {
-      Serial.println("Error on HTTP request");
-    }
-    http.end();
+    String payload_base =  "{\"command\": \"sensor\", \"sheet_name\": \"Sheet2\", \"values\": ";
+    payload = payload_base + "\"" + humidity + "," + temperature + "," + luminosity + "\"}";
+
+    Serial.println("Sending...");
+        if (client->POST(url, host, payload)){ //Send the data through the google API
+            Serial.println(" [OK]");
+        }
+        else {
+            Serial.println("[Error]");
+        }
     totalPoints=0;
 }
