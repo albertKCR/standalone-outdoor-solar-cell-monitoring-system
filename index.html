@@ -1,22 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
+<title>Solar cell monitoring system</title>
 
 <head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .charts {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      width: 100%;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .single-charts {
+      border-style: solid;
+      border-color: black;
+      border-width: 2px;
+      margin-top: 60px;
+    }
+
+    #header {
+      display: flex;
+      flex-direction: row;
+      background-color: #fecc00;
+      position: fixed;
+      width: 100%;
+      height: 50px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      font-family: lato;
+      font-size: 35px;
+      color: black;
+      padding: 5px;
+    }
+
+    footer {
+      font-family: lato;
+      width: 100%;
+      height: 65px;
+      background-color: #fecc00;
+    }
+    .footer-img{
+      display: flex;
+      flex-direction: row;
+      padding: 5px;
+      width: 400px;
+      justify-content: space-between;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
 </head>
 
 <body>
-  <div>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1361458190&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=985647002&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1813422852&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1541284184&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1528534909&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=519873111&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=2054935545&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=154938288&amp;format=interactive"></iframe>
-    <iframe width="600" height="371" seamless frameborder="0" scrolling="no" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=300135561&amp;format=interactive"></iframe>
-    
+  <header id="header">
+    <div class="header-title">
+      SOLAR CELL MONITORING SYSTEM
+    </div>
+  </header>
+  <div class="charts">
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1361458190&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=985647002&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1813422852&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1541284184&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=1528534909&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=519873111&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=2054935545&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=154938288&amp;format=interactive"></iframe>
+    <iframe class="single-charts" width="600" height="371" seamless frameborder="0" scrolling="no"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSHI91V4v8H1xG-YPhN2dLv54fF-_s-_h4mROsiqEAN9VbXtsxTVB92i53uuEWgsy2qrEVbA1wZLmT5/pubchart?oid=300135561&amp;format=interactive"></iframe>
   </div>
+  <footer>
+    <div class="footer-img">
+      <img src="utfpr.png" height="50px">
+      <img src="cnpq.png" height="50px">
+      <img src="ineo.png" height="50px">
+    </div>
+  </footer>
 </body>
 
 </html>
