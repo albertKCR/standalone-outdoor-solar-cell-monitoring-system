@@ -7,6 +7,6 @@ function doGet(e) {
 
 function delRows() {
 
-  var sheet1 = SS.getSheetByName("test");
+  var sheet1 = SS.getSheetByName("Sheet1");
   sheet1.deleteRows(2, sheet1.getLastRow());
 }
