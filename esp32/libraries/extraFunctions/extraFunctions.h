@@ -12,80 +12,86 @@
 #include "HTTPSRedirect.h"
 #include <NTPClient.h>
 
+#define resistorMutiplexerA 25 // multiplexer that select the shunt resistence
+#define resistorMutiplexerB 26
+#define resistorMutiplexerC 27
+#define measureMutiplexerA 14 // multiplexer that select the panel
+#define measureMutiplexerB 32
+#define measureMutiplexerC 33
 
-#define latchPin 27       // connected to ST_CP
-#define clockPin 25       // connected to SH_CP
-#define dataPin  26       // connected to DS
+#define latchPin 27 // connected to ST_CP
+#define clockPin 25 // connected to SH_CP
+#define dataPin 26  // connected to DS
 
-#define button 5         // external button, general purpose
+#define button 5 // external button, general purpose
 
-#define LDR 36 //luminosity sensor
-#define DHTPIN 34 // data pin
+#define LDR 36        // luminosity sensor
+#define DHTPIN 34     // data pin
 #define DHTTYPE DHT11 // type of DHT (DHT11)
 
-//#define DEBUG true
-// --- auxiliar vars
-    extern int rangeCounter; // Contains current scale
-    extern int rel[7];       // HEX for each shunt resistance
-    extern int totalPoints;  // total points of reading 
-    extern int pontosTotais;
-    extern float shunt[7];   // contains resistance values
-    extern int measurementsByTension; // number of measurements for the mean 
-    extern float sumOfCurrents; // variable to store the sum of currents for the mean
-    extern float humidity;
-    extern float temperature;
-    extern int luminosity;
-    extern int rangeCounter;
+// #define DEBUG true
+//  --- auxiliar vars
+extern int rangeCounter; // Contains current scale
+extern int rel[7];       // HEX for each shunt resistance
+extern int totalPoints;  // total points of reading
+extern int pontosTotais;
+extern float shunt[7];            // contains resistance values
+extern int measurementsByTension; // number of measurements for the mean
+extern float sumOfCurrents;       // variable to store the sum of currents for the mean
+extern float humidity;
+extern float temperature;
+extern int luminosity;
+extern int rangeCounter;
+extern int multiplexer[8][3];
 
-//URL to access the google sheet
-    const char* GScriptId   = "AKfycbyn4mBgOtGKilT11P1RbFAfTR9Eo_A_rrZrnz2an1NAiAQg7wc4zd_gm23lv09iTxxU";
-    String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
-    String payload = "";
-    const char* host = "script.google.com";
-    const int httpsPort = 443;
-    String url = String("/macros/s/") + GScriptId + "/exec?cal";
+// URL to access the google sheet
+extern const char *GScriptId;
+extern String payload_base;
+extern String payload;
+extern const char *host;
+extern const int httpsPort;
+extern String url;
 
-//array that store the received values of current and voltage
-    String toSendData[40];
-    
-// --- objects --- 
-        extern Adafruit_MCP4725 dac;
-        extern ADS1256 adc;
-        extern ExternalEEPROM eep;
-        extern DHT dht;
-        extern WiFiUDP udp;
-        extern NTPClient ntp;
-        extern HTTPSRedirect* client = nullptr;
+// array that store the received values of current and voltage
+extern String toSendData[40];
 
+// --- objects ---
+extern Adafruit_MCP4725 dac;
+extern ADS1256 adc;
+extern ExternalEEPROM eep;
+extern DHT dht;
+extern WiFiUDP udp;
+extern NTPClient ntp;
+extern HTTPSRedirect *client;
 
-      // --- Additional functions ---  
+// --- Additional functions ---
 
-        void setScale();         // sets input value for current scale       //ja foi
-        void scaleUp();                 // sets up current scale                    //ja foi
-        void scaleDown();               // sets down current scale                  //ja foi
+void setScale();  // sets input value for current scale       //ja foi
+void scaleUp();   // sets up current scale                    //ja foi
+void scaleDown(); // sets down current scale                  //ja foi
 
-        void Scan(int &var);            // similar to scanf                        //ja foi
-        void exportData(int &stop);    // handles data exporting                  //ja foi
+void Scan(int &var);        // similar to scanf                        //ja foi
+void exportData(int &stop); // handles data exporting                  //ja foi
 
-        void sweep();                   // voltage sweep function 
+void sweep(); // voltage sweep function
 
-        void calibrating();
-        void cal2();
-        
-        void voltageAdjust();
+void calibrating();
+void cal2();
 
-        void savedata(int addres,float volt, float current,float dif); //save data in the EEPROM
-        void readdata(int addres,float &volt, float &current,float &dif); //reads data from the EEPROM
-        float getDif(int addres);
+void voltageAdjust();
 
-        void sendToSheet(); //send the last measure to google sheet
-        void autonomousSweep(); //make the measure from 0 to 2500 volts
-        void autonomous();  //the equipament works autonomous
-        void meanOfMeasures(int numOfMeasures); //makes the measure and the mean
-        void scaleControl(int range); //checks the scale
-        void sweepScaleControl(int range, int *i); //checks the scale changing when 'sweep' is being executed
-        void sweepControl(int startVoltage, int finalVoltage, int rangeCounter, int measurementsByTension, int timestep);  //loop that controls the measurement
-        void sensorsMeasure();  //read the dht and ldr
-        void connectToInternet();
-        void sendToSheet();
+void savedata(int addres, float volt, float current, float dif);    // save data in the EEPROM
+void readdata(int addres, float &volt, float &current, float &dif); // reads data from the EEPROM
+float getDif(int addres);
+
+void sendToSheet();                     // send the last measure to google sheet
+int autonomousSweep();                  // make the measure from 0 to 2500 volts
+void autonomous();                      // the equipament works autonomous
+void meanOfMeasures(int numOfMeasures); // makes the measure and the mean
+void scaleControl();           // checks the scale
+int sweepControl(int startVoltage, int finalVoltage, int timestep); // loop that controls the measurement
+void sensorsMeasure();                                                                                           // read the dht and ldr
+void connectToInternet();
+void sendToSheet();
+void setResistorMultiplexer();
 #endif
