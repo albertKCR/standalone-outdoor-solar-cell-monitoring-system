@@ -1,6 +1,6 @@
 //using the definitions in this library: https://github.com/Flydroid/ADS12xx-Library
 
-#define SPI_SPEED 2500000
+#define SPI_SPEED 1000000
 
 
 /* For information to the register and settings see manual page (p..) */

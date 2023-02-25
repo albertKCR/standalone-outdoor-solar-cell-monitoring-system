@@ -5,11 +5,13 @@
 #include "Adafruit_MCP4725.h"
 #include "SparkFun_External_EEPROM.h"
 #include "DHT.h"
+#include "RTClib.h"
 #include "HTTPSRedirect.h"
-#include <NTPClient.h>
 
-const char* GScriptId   = "AKfycbyn4mBgOtGKilT11P1RbFAfTR9Eo_A_rrZrnz2an1NAiAQg7wc4zd_gm23lv09iTxxU";
-String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
+
+//const char* GScriptId   = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
+const char* GScriptId   = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
+String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"test\", \"values\": ";
 String payload = "";
 const char* host = "script.google.com";
 const int httpsPort = 443;
@@ -18,6 +20,10 @@ String url = String("/macros/s/") + GScriptId + "/exec?cal";
 //array that store the received values of current and voltage
 String toSendData[40];
 
+
+//#define resistorMutiplexerA 25 // multiplexer that select the shunt resistence
+//#define resistorMutiplexerB 26
+//#define resistorMutiplexerC 27
 
 // --- pins definition ---
 #define latchPin 27       // connected to ST_CP
@@ -36,9 +42,8 @@ Adafruit_MCP4725 dac;
 ADS1256 adc;
 ExternalEEPROM eep;
 DHT dht(DHTPIN, DHTTYPE);
-WiFiUDP udp;
 HTTPSRedirect* client = nullptr;
-NTPClient ntp(udp, "a.st1.ntp.br", -3 * 3600, 60000);
+RTC_DS1307 rtc;
 
 
 // --- utility values ---
@@ -62,7 +67,7 @@ float shunt[7] = { // Shunt resistance values
   97611.816 // limite 250nA   * 1 000 000 000
 };
 
-int multiplexer[8][3] = {{0, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 1}, {1, 0, 0}, {1, 0, 1}, {1, 1, 0}, {1, 1, 1}};
+int multiplexer[7][3] = {{LOW, LOW, LOW}, {LOW, LOW, HIGH}, {LOW, HIGH, LOW}, {LOW, HIGH, HIGH}, {HIGH, LOW, LOW}, {HIGH, LOW, HIGH}, {HIGH, HIGH, LOW}};
 
 
 // --- auxiliar vars ---
@@ -75,9 +80,18 @@ void CallISR();// interruption routine, detects falling edge
 void setup() {
   delay(100);
   Serial.begin(115200);
+
+  //pinMode(resistorMutiplexerA, OUTPUT);
+  //pinMode(resistorMutiplexerB, OUTPUT);
+  //pinMode(resistorMutiplexerC, OUTPUT);
+
   dht.begin();
-  ntp.begin();
-  ntp.forceUpdate();
+  rtc.begin();
+  if (! rtc.begin()) {
+    Serial.println("RTC NAO INICIALIZADO");
+    while (1);
+  }
+  rtc.adjust(DateTime(2023, 2, 22, 17, 55, 14 ));
   pinMode(LDR, INPUT);
   Serial.println("booting");
 
@@ -108,11 +122,14 @@ void setup() {
 
   dac.begin(0x60);
   dac.setVoltage(0x2AB, false);
-
   //initialize the ADS
   adc.begin();
-
   Serial.println("done init");
+  DateTime now = rtc.now();
+  Serial.println(now.hour());
+  Serial.println(now.minute());
+  Serial.println(now.year());
+  sensorsMeasure();
 }
 
 

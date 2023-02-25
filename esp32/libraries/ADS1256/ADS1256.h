@@ -12,14 +12,18 @@ extern ExternalEEPROM eep;
 class ADS1256
 {
 
-#define ADS_RST_PIN 15 // ADS1256 reset pin
+#define ADS_RST_PIN 17//15 // ADS1256 reset pin
 #define ADS_RDY_PIN 16 // ADS1256 data ready
 #define ADS_CS_PIN 5 // ADS1256 chip select
+
+
+//#define ADS_RST_PIN 9 // ADS1256 reset pin
+//#define ADS_RDY_PIN 2 // ADS1256 data ready
+//#define ADS_CS_PIN 53 // ADS1256 chip select
      
      boolean DRDY_state;
 
 public:
-
     float OutputVoltage;        // stores readed voltage
     float OutputCurrent;        // stores readed current
 
@@ -68,6 +72,9 @@ public:
 
     float returnVoltage();
     float returnCurrent();
+
+    unsigned long readRegister(uint8_t registerAddress);
+    void writeRegister(uint8_t registerAddress, uint8_t registerValueW);
 
 
 

@@ -12,16 +12,16 @@ void setScale()
 {
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, MSBFIRST, rel[rangeCounter]);
-    //setResistorMultiplexer();
+    // setResistorMultiplexer();
     digitalWrite(latchPin, HIGH);
     delay(100);
 }
 
 void setResistorMultiplexer()
 {
-    digitalWrite(resistorMutiplexerA, multiplexer[rangeCounter][0]);
-    digitalWrite(resistorMutiplexerB, multiplexer[rangeCounter][1]);
-    digitalWrite(resistorMutiplexerC, multiplexer[rangeCounter][2]);
+    // digitalWrite(resistorMutiplexerA, multiplexer[rangeCounter][0]);
+    // digitalWrite(resistorMutiplexerB, multiplexer[rangeCounter][1]);
+    // digitalWrite(resistorMutiplexerC, multiplexer[rangeCounter][2]);
 }
 
 //=== --- === --- === --- --- === --- === --- === --- === --- === --- --- === --- === --- === --- === ---
@@ -374,7 +374,7 @@ void sweep()
         while ((millis() - timer) < timestep)
         { // waits til next step
 
-            if (!digitalRead(button))
+            if (digitalRead(button))
             {
                 Serial.println("sweep abortado");
                 i = end;   // força sair do laço sweep
@@ -641,12 +641,11 @@ void voltageAdjust()
 
 void autonomous()
 {
-    int hour, minute;
-    connectToInternet();
+    int hour = 12, minute = 0;
+    // connectToInternet();
     while (1)
     {
-        ntp.update();
-        if ((ntp.getHours() == 12) && (ntp.getMinutes() == 00))
+        if ((hour == 12) && (minute == 0))
         { // check the time to make the measurement
             for (int i = 0; i < 8; i++)
             {
@@ -659,7 +658,8 @@ void autonomous()
                 }
                 delay(5000);
                 sensorsMeasure(); // reads the temperature and humidity sensor
-                sendToSheet();    // sends the data to google sheets
+                connectToInternet();
+                sendToSheet(); // sends the data to google sheets
             }
         }
         if (Serial.available() > 0)
@@ -684,6 +684,9 @@ void sensorsMeasure()
         Serial.println("Failed to read from DHT");
     }
     luminosity = analogRead(LDR);
+    Serial.println(humidity);
+    Serial.println(temperature);
+    Serial.println(luminosity);
 }
 
 int autonomousSweep()
@@ -807,7 +810,8 @@ int sweepControl(int startVoltage, int finalVoltage, int timestep)
 
 void connectToInternet()
 {
-    WiFi.begin("UTFPR-Projetos", "pNU9cnpPZ$tM");
+    WiFi.begin("iPhone de Albert", "12345678");
+    //WiFi.begin("UTFPR-Projetos", "pNU9cnpPZ$tM");
     Serial.println(WiFi.macAddress());
 
     Serial.print("Connecting");
@@ -852,13 +856,15 @@ void connectToInternet()
     // ---
 }
 
-void sendToSheet()
+/*void sendToSheet()
 {
     int stringCounter = 0;
-    int loadCounter = 0;
     float volt;
     float current;
     float dif;
+
+
+    totalPoints=40;
 
     while (totalPoints > 0)
     {
@@ -888,13 +894,12 @@ void sendToSheet()
                 Serial.println("[Error]");
             }
             // ---
-
             for (int i = 0; i < 40; i++)
             {
                 readdata((stringCounter + 1), volt, current, dif);                   // access in the EEPROM the data of voltage and current
-                String currentVoltage = String(current, 13) + "," + String(volt, 5); // transform the data in one string
-                toSendData[i] = currentVoltage;
-                loadCounter++;
+                //String currentVoltage = String(current, 13) + "," + String(volt, 5); // transform the data in one string
+                //String currentVoltage = String("321") + "," + String("123");
+                toSendData[i] = String("321") + "," + String("123");
                 stringCounter++;
             }
 
@@ -921,10 +926,10 @@ void sendToSheet()
         {
             for (int i = 0; i < 40 - abs(totalPoints); i++)
             {
-                readdata((stringCounter + 1), volt, current, dif);                   // access in the EEPROM the data of voltage and current
-                String currentVoltage = String(current, 13) + "," + String(volt, 5); // transform the data in one string
-                toSendData[i] = currentVoltage;
-                loadCounter++;
+                //readdata((stringCounter + 1), volt, current, dif);                   // access in the EEPROM the data of voltage and current
+                //String currentVoltage = String(current, 13) + "," + String(volt, 5); // transform the data in one string
+                //toSendData[i] = currentVoltage;
+                toSendData[i] = String("321") + "," + String("123");
                 stringCounter++;
             }
             // the payload will be constructed according to the received data
@@ -960,4 +965,186 @@ void sendToSheet()
         Serial.println("[Error]");
     }
     totalPoints = 0;
+}*/
+
+void sendToSheet()
+{
+    int totalPoints = 153;
+    String test[153];
+    int loadCounter = 0;
+    float volt;
+    float current;
+    float dif;
+    int stringCounter = 0;
+    for (int j = 0; j < 153; j++)
+    {
+        test[j] = String("132") + "," + String("133");
+    }
+    static bool flag = false;
+    if (!flag)
+    {
+        client = new HTTPSRedirect(httpsPort);
+        client->setInsecure();
+        flag = true;
+        client->setPrintResponseBody(true);
+        client->setContentTypeHeader("application/json");
+    }
+    if (client != nullptr)
+    {
+        if (!client->connected())
+        {
+            client->connect(host, httpsPort);
+        }
+    }
+    else
+    {
+        Serial.println("[Error]");
+    }
+    // ---
+    String url1 = String("/macros/s/") + "AKfycbzjP_akNXHgYh1XiYvLqgZGqUJwEuVOewOqv_7lsZ8ZCHHWhSSdXy2IsvtCrs0I_ME" + "/exec?cal";
+    if (client->GET(url1, host))
+    { // Send the data through the google API
+        Serial.println(" [OK]");
+    }
+    else
+    {
+        Serial.println("[Error]");
+    }
+
+    while (totalPoints > 0)
+    {
+        DateTime now = rtc.now();
+        totalPoints = totalPoints - 40;
+        if (totalPoints > 0)
+        {
+
+            // --- HTTPS protocol ---
+            static bool flag = false;
+            if (!flag)
+            {
+                client = new HTTPSRedirect(httpsPort);
+                client->setInsecure();
+                flag = true;
+                client->setPrintResponseBody(true);
+                client->setContentTypeHeader("application/json");
+            }
+            if (client != nullptr)
+            {
+                if (!client->connected())
+                {
+                    client->connect(host, httpsPort);
+                }
+            }
+            else
+            {
+                Serial.println("[Error]");
+            }
+            // ---
+
+            stringCounter = 0;
+            for (int i = 0; i < 40; i++)
+            {
+                toSendData[i] = test[i];
+                loadCounter++;
+                stringCounter++;
+            }
+
+            // the payload will be constructed according to the received data
+            payload = payload_base + "\"" + toSendData[0];
+            for (int i = 1; i < stringCounter; i++)
+            {
+                payload = payload + "," + toSendData[i];
+            }
+            payload = payload + "\"}";
+
+            Serial.println("Sending...");
+
+            if (client->POST(url, host, payload))
+            { // Send the data through the google API
+                Serial.println(" [OK]");
+            }
+            else
+            {
+                Serial.println("[Error]");
+            }
+        }
+        else
+        {
+            stringCounter = 0;
+            Serial.print("totalpoints= ");
+            Serial.println(totalPoints);
+            for (int i = 0; i < 40 - abs(totalPoints); i++)
+            {
+                toSendData[i] = test[i];
+                loadCounter++;
+                stringCounter++;
+            }
+            // the payload will be constructed according to the received data
+            payload = payload_base + "\"" + toSendData[0];
+            for (int i = 1; i < stringCounter; i++)
+            {
+                payload = payload + "," + toSendData[i];
+            }
+            payload = payload + "\"}";
+
+            Serial.println("Sending...");
+
+            if (client->POST(url, host, payload))
+            { // Send the data through the google API
+                Serial.println(" [OK]");
+            }
+            else
+            {
+                Serial.println("[Error]");
+            }
+        }
+    }
+
+    String payload_base = "{\"command\": \"sensor\", \"sheet_name\": \"sensor\", \"values\": ";
+    payload = payload_base + "\"" + dht.readHumidity() + "," + dht.readTemperature() + "," + analogRead(LDR) + "\"}";
+
+    Serial.println("Sending...");
+    if (client->POST(url, host, payload))
+    { // Send the data through the google API
+        Serial.println(" [OK]");
+    }
+    else
+    {
+        Serial.println("[Error]");
+    }
+    totalPoints = 0;
+    while (1)
+    {
+        // --- HTTPS protocol ---
+        static bool flag = false;
+        if (!flag)
+        {
+            client = new HTTPSRedirect(httpsPort);
+            client->setInsecure();
+            flag = true;
+            client->setPrintResponseBody(true);
+            client->setContentTypeHeader("application/json");
+        }
+        if (client != nullptr)
+        {
+            if (!client->connected())
+            {
+                client->connect(host, httpsPort);
+            }
+        }
+        else
+        {
+            Serial.println("[Error]");
+        }
+        // ---
+        String url2 = String("/macros/s/") + "AKfycbxxyoFAWe9FOx0jmXTF6jMJ0wp0D2woNQrWDkj4cs0_sVRMfqazh6Sq8jylQ3UaZRbJ" + "/exec?cal";
+        if (client->GET(url2, host))
+        { // Send the data through the google API
+            Serial.println(" [OK]");
+        }
+        else
+        {
+            Serial.println("[Error]");
+        }
+    }
 }

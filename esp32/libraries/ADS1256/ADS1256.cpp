@@ -21,6 +21,7 @@ ADS1256::ADS1256()
 void ADS1256 :: begin(){
 
     //Serial.begin(115200);
+    
     SPI.begin();
 
     pinMode(ADS_CS_PIN, OUTPUT);
@@ -29,11 +30,11 @@ void ADS1256 :: begin(){
 
     for(int i= 0; i<7; i++){
 
-        eep.get((60000 +(i*4)) , correction[i]);
+      eep.get((60000 +(i*4)) , correction[i]);
 
     }
 
- 
+    Serial.println("a");
     digitalWrite(ADS_RST_PIN, LOW);
     delay(10); // LOW at least 4 clock cycles of onboard clock. 100 microsecons is enough
     digitalWrite(ADS_RST_PIN, HIGH); // now reset to deafult values
@@ -44,16 +45,18 @@ void ADS1256 :: begin(){
     Reset();
     delay(2000);
 
-    SetRegisterValue(MUX, MUX_RESET); // set to read channel(0,1)
-
-    SetRegisterValue(ADCON, PGA_1);
-
-    SetRegisterValue(DRATE, DR_100);
-
+    writeRegister(MUX, MUX_RESET); // set to read channel(0,1)
+    Serial.println(MUX_RESET);
+    Serial.println(readRegister(MUX));
+    writeRegister(ADCON, PGA_1);
+    Serial.println(PGA_1);
+    Serial.println(readRegister(ADCON));
+    writeRegister(DRATE, DR_100);
+    Serial.println(DR_100);
+    Serial.println(readRegister(DRATE));
     delay(2000);
 
     SendCMD(SELFCAL); //send the calibration command
-
     delay(5);
 
 }
@@ -205,6 +208,8 @@ void ADS1256 :: Reset() {
 void ADS1256 :: SetRegisterValue(uint8_t regAdress, uint8_t regValue) {
 
   uint8_t regValuePre = GetRegisterValue(regAdress);
+  Serial.println("regValuePRe");
+  Serial.println(regValuePre);
   if (regValue != regValuePre) {
     //digitalWrite(_START, HIGH);
     delayMicroseconds(10);
@@ -217,9 +222,13 @@ void ADS1256 :: SetRegisterValue(uint8_t regAdress, uint8_t regValue) {
     SPI.transfer(regValue);         // write data (1 Byte) for the register
     delayMicroseconds(10);
     digitalWrite(ADS_CS_PIN, HIGH);
+    //SPI.endTransaction();
     //digitalWrite(_START, LOW);
+    Serial.println("regValue");
     Serial.println(regValue);
+    Serial.println("GetRegisterValue(regAdress)");
     Serial.println(GetRegisterValue(regAdress));
+    Serial.println("//");
     if (regValue != GetRegisterValue(regAdress)) {   //Check if write was succesfull
       Serial.print("Write to Register 0x");
       Serial.print(regAdress, HEX);
@@ -239,9 +248,13 @@ void ADS1256 :: SetRegisterValue(uint8_t regAdress, uint8_t regValue) {
     uint8_t bufr;
     digitalWrite(ADS_CS_PIN, LOW);
     delayMicroseconds(10);
+    Serial.println("66");
     waitforDRDY();
+    Serial.println("67");
     SPI.beginTransaction(SPISettings(SPI_SPEED, MSBFIRST, SPI_MODE1));
+    Serial.println("68");
     SPI.transfer(RREG | regAdress); // send 1st command byte, address of the register
+    Serial.println("69");
     SPI.transfer(0x00);     // send 2nd command byte, read only one register
     delayMicroseconds(10);
     bufr = SPI.transfer(NOP); // read data of the register
@@ -249,10 +262,68 @@ void ADS1256 :: SetRegisterValue(uint8_t regAdress, uint8_t regValue) {
     digitalWrite(ADS_CS_PIN, HIGH);
     //digitalWrite(_START, LOW);
     SPI.endTransaction();
+    Serial.println("77");
     return bufr;
 
 }
+unsigned long ADS1256 ::  readRegister(uint8_t registerAddress) //Function for READING a selected register
+{
+    uint8_t registerValueR;
+    waitforDRDY(); //Waiting for DRDY to go low ('1')
+    //this is a separate function that watches the attachinterrupt() pin
+ 
+    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+    //SPI_MODE1 = output edge: rising, data capture: falling; clock polarity: 0, clock phase: 1.
+ 
+    digitalWrite(ADS_CS_PIN, LOW); //CS must stay LOW during the entire sequence [Ref: P34, T24]
+ 
+    delayMicroseconds(7); //see t6 in the datasheet
+    //t6 = 50 * tau_CLKIN = 50 * 130.2 ns = 6510 ns = 6.51 us; you want to round it UP to the next integer (even if it would be 6.1 us)
+ 
+    SPI.transfer(0x10 | registerAddress); //0x10 = RREG, '|' = bitwise OR operation
+ 
+    SPI.transfer(0x00);
+ 
+    delayMicroseconds(7); //see t6 in the datasheet
+ 
+    registerValueR = SPI.transfer(0xFF); //obtaining the data and 'saving' into the variable
+ 
+    delayMicroseconds(7); //see t6 in the datasheet
+ 
+    digitalWrite(ADS_CS_PIN, HIGH);
+ 
+    SPI.endTransaction();
+ 
+    return registerValueR;
+}
 
+void ADS1256 ::  writeRegister(uint8_t registerAddress, uint8_t registerValueW)
+{
+    waitforDRDY(); //waiting for DRDY to go LOW
+ 
+    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+    //SPI_MODE1 = output edge: rising, data capture: falling; clock polarity: 0, clock phase: 1.
+ 
+    digitalWrite(ADS_CS_PIN, LOW); //CS must stay LOW during the entire sequence [Ref: P34, T24]
+ 
+    delayMicroseconds(7); //see t6 in the datasheet
+    //t6 = 50 * tau_CLKIN = 50 * 130.2 ns = 6510 ns = 6.51 us; you want to round it UP to the next integer (even if it would be 6.1 us)
+ 
+    SPI.transfer(0x50 | registerAddress); // 0x50 = WREG, '|' = Bitwise OR operator
+ 
+    SPI.transfer(0x00);
+ 
+    delayMicroseconds(7); //see t6 in the datasheet
+ 
+    SPI.transfer(registerValueW); //Sending the desired value of the register that we write
+    //registerValueW is a variable which gets its value from the serial terminal
+ 
+    delayMicroseconds(7); //see t6 in the datasheet
+ 
+    digitalWrite(ADS_CS_PIN, HIGH);
+ 
+    SPI.endTransaction();
+}
 
 
 void ADS1256 :: SendCMD(uint8_t cmd) {

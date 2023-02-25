@@ -6,15 +6,13 @@
 #include "SparkFun_External_EEPROM.h"
 #include <Wire.h>
 #include "DHT.h"
-#include <String.h>
-#include "WiFi.h"
+#include "RTClib.h"
 #include "WiFi.h"
 #include "HTTPSRedirect.h"
-#include <NTPClient.h>
 
-#define resistorMutiplexerA 25 // multiplexer that select the shunt resistence
-#define resistorMutiplexerB 26
-#define resistorMutiplexerC 27
+//#define resistorMutiplexerA 25 // multiplexer that select the shunt resistence
+//#define resistorMutiplexerB 26
+//#define resistorMutiplexerC 27
 #define measureMutiplexerA 14 // multiplexer that select the panel
 #define measureMutiplexerB 32
 #define measureMutiplexerC 33
@@ -23,11 +21,10 @@
 #define clockPin 25 // connected to SH_CP
 #define dataPin 26  // connected to DS
 
-#define button 5 // external button, general purpose
-
-#define LDR 36        // luminosity sensor
-#define DHTPIN 34     // data pin
-#define DHTTYPE DHT11 // type of DHT (DHT11)
+#define button 99
+#define LDR 36  // luminosity sensor
+#define DHTPIN 4     // data pin
+#define DHTTYPE DHT22 // type of DHT (DHT22)
 
 // #define DEBUG true
 //  --- auxiliar vars
@@ -42,7 +39,7 @@ extern float humidity;
 extern float temperature;
 extern int luminosity;
 extern int rangeCounter;
-extern int multiplexer[8][3];
+extern int multiplexer[7][3];
 
 // URL to access the google sheet
 extern const char *GScriptId;
@@ -60,9 +57,8 @@ extern Adafruit_MCP4725 dac;
 extern ADS1256 adc;
 extern ExternalEEPROM eep;
 extern DHT dht;
-extern WiFiUDP udp;
-extern NTPClient ntp;
 extern HTTPSRedirect *client;
+extern RTC_DS1307 rtc;
 
 // --- Additional functions ---
 
@@ -94,4 +90,5 @@ void sensorsMeasure();                                                          
 void connectToInternet();
 void sendToSheet();
 void setResistorMultiplexer();
+void HTTPS_Redirect_Setup();
 #endif
