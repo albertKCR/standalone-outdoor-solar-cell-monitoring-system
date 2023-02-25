@@ -9,21 +9,17 @@
 #include "HTTPSRedirect.h"
 
 
-//const char* GScriptId   = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
-const char* GScriptId   = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
-String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"test\", \"values\": ";
-String payload = "";
-const char* host = "script.google.com";
-const int httpsPort = 443;
-String url = String("/macros/s/") + GScriptId + "/exec?cal";
 
-//array that store the received values of current and voltage
-String toSendData[40];
+// const char* GScriptId   = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
+// String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"test\", \"values\": ";
+// String payload = "";
+// const char* host = "script.google.com";
+// const int httpsPort = 443;
+// String url = String("/macros/s/") + GScriptId + "/exec?cal";
 
+// //array that store the received values of current and voltage
+// String toSendData[40];
 
-//#define resistorMutiplexerA 25 // multiplexer that select the shunt resistence
-//#define resistorMutiplexerB 26
-//#define resistorMutiplexerC 27
 
 // --- pins definition ---
 #define latchPin 27       // connected to ST_CP
@@ -67,8 +63,6 @@ float shunt[7] = { // Shunt resistance values
   97611.816 // limite 250nA   * 1 000 000 000
 };
 
-int multiplexer[7][3] = {{LOW, LOW, LOW}, {LOW, LOW, HIGH}, {LOW, HIGH, LOW}, {LOW, HIGH, HIGH}, {HIGH, LOW, LOW}, {HIGH, LOW, HIGH}, {HIGH, HIGH, LOW}};
-
 
 // --- auxiliar vars ---
 int rangeCounter = 0;        // current scale starts at lowest resistance
@@ -80,10 +74,6 @@ void CallISR();// interruption routine, detects falling edge
 void setup() {
   delay(100);
   Serial.begin(115200);
-
-  //pinMode(resistorMutiplexerA, OUTPUT);
-  //pinMode(resistorMutiplexerB, OUTPUT);
-  //pinMode(resistorMutiplexerC, OUTPUT);
 
   dht.begin();
   rtc.begin();

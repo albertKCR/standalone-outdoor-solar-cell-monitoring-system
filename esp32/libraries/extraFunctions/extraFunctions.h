@@ -10,12 +10,6 @@
 #include "WiFi.h"
 #include "HTTPSRedirect.h"
 
-//#define resistorMutiplexerA 25 // multiplexer that select the shunt resistence
-//#define resistorMutiplexerB 26
-//#define resistorMutiplexerC 27
-#define measureMutiplexerA 14 // multiplexer that select the panel
-#define measureMutiplexerB 32
-#define measureMutiplexerC 33
 
 #define latchPin 27 // connected to ST_CP
 #define clockPin 25 // connected to SH_CP
@@ -42,22 +36,22 @@ extern int rangeCounter;
 extern int multiplexer[7][3];
 
 // URL to access the google sheet
-extern const char *GScriptId;
-extern String payload_base;
-extern String payload;
-extern const char *host;
-extern const int httpsPort;
-extern String url;
+// extern const char *GScriptId;
+// extern String payload_base;
+// extern String payload;
+// extern const char *host;
+// extern const int httpsPort;
+// extern String url;
 
 // array that store the received values of current and voltage
-extern String toSendData[40];
+// extern String toSendData[40];
 
 // --- objects ---
 extern Adafruit_MCP4725 dac;
 extern ADS1256 adc;
 extern ExternalEEPROM eep;
 extern DHT dht;
-extern HTTPSRedirect *client;
+extern HTTPSRedirect* client;
 extern RTC_DS1307 rtc;
 
 // --- Additional functions ---
@@ -81,14 +75,14 @@ void readdata(int addres, float &volt, float &current, float &dif); // reads dat
 float getDif(int addres);
 
 void sendToSheet();                     // send the last measure to google sheet
-int autonomousSweep();                  // make the measure from 0 to 2500 volts
+void autonomousSweep();                  // make the measure from 0 to 2500 volts
 void autonomous();                      // the equipament works autonomous
 void meanOfMeasures(int numOfMeasures); // makes the measure and the mean
 void scaleControl();           // checks the scale
-int sweepControl(int startVoltage, int finalVoltage, int timestep); // loop that controls the measurement
+void sweepControl(int startVoltage, int finalVoltage, int timestep); // loop that controls the measurement
 void sensorsMeasure();                                                                                           // read the dht and ldr
 void connectToInternet();
-void sendToSheet();
 void setResistorMultiplexer();
-void HTTPS_Redirect_Setup();
+void tempDataCopy();
+void deleteCurrentData();
 #endif
