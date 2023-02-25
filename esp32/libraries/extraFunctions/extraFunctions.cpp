@@ -646,6 +646,7 @@ void autonomous()
         deleteCurrentData();
         sendToSheet(); // sends the data to google sheets
         tempDataCopy();
+        saveDataToDrive();
 
         if (WiFi.status() != WL_CONNECTED)
         {
@@ -891,6 +892,43 @@ void tempDataCopy()
     }
     // ---
     if (client->GET(copyTempUrl, host))
+    { // Execute the script
+        Serial.println(" [OK]");
+    }
+    else
+    {
+        Serial.println("[Error]");
+    }
+}
+
+void saveDataToDrive()
+{
+    String saveToDriveUrl = String("/macros/s/") + "AKfycbxCIx9SevIpHNxBDH0L_85XjRgbSbDGB8_foXiznsPfZfPso-VYj69oJyoinwK_EvLb" + "/exec?cal";
+    const char* host = "script.google.com";
+    const int httpsPort = 443;
+    // --- HTTPS protocol ---
+    static bool flag = false;
+    if (!flag)
+    {
+        client = new HTTPSRedirect(httpsPort);
+        client->setInsecure();
+        flag = true;
+        client->setPrintResponseBody(true);
+        client->setContentTypeHeader("application/json");
+    }
+    if (client != nullptr)
+    {
+        if (!client->connected())
+        {
+            client->connect(host, httpsPort);
+        }
+    }
+    else
+    {
+        Serial.println("[Error]");
+    }
+    // ---
+    if (client->GET(saveToDriveUrl, host))
     { // Execute the script
         Serial.println(" [OK]");
     }

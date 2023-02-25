@@ -80,9 +80,9 @@ void autonomous();                      // the equipament works autonomous
 void meanOfMeasures(int numOfMeasures); // makes the measure and the mean
 void scaleControl();           // checks the scale
 void sweepControl(int startVoltage, int finalVoltage, int timestep); // loop that controls the measurement
-void sensorsMeasure();                                                                                           // read the dht and ldr
+void sensorsMeasure();      // read the dht and ldr
 void connectToInternet();
-void setResistorMultiplexer();
 void tempDataCopy();
 void deleteCurrentData();
+void saveDataToDrive();
 #endif
