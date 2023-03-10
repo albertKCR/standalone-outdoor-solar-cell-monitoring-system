@@ -639,13 +639,16 @@ void autonomous()
     if ((hour == 12) && (minute == 0))
     { // check the time to make the measurement
 
-        autonomousSweep();
-        delay(5000);
+        //autonomousSweep();
         sensorsMeasure(); // reads the temperature and humidity sensor
         connectToInternet();
+        //delay(5000);
         deleteCurrentData();
+        //delay(5000);
         sendToSheet(); // sends the data to google sheets
+        //delay(5000);
         tempDataCopy();
+        //delay(5000);
         saveDataToDrive();
 
         if (WiFi.status() != WL_CONNECTED)
@@ -781,8 +784,8 @@ void connectToInternet()
 {
     const char* host = "script.google.com";
     const int httpsPort = 443;
-    WiFi.begin("iPhone de Albert", "12345678");
-    // WiFi.begin("UTFPR-Projetos", "pNU9cnpPZ$tM");
+    //WiFi.begin("iPhone de Albert", "12345678");
+    WiFi.begin("UTFPR-Projetos", "pNU9cnpPZ$tM");
     Serial.println(WiFi.macAddress());
 
     Serial.print("Connecting");
@@ -829,7 +832,7 @@ void connectToInternet()
 
 void deleteCurrentData()
 {
-    String deleteRowsUrl = String("/macros/s/") + "AKfycbzjP_akNXHgYh1XiYvLqgZGqUJwEuVOewOqv_7lsZ8ZCHHWhSSdXy2IsvtCrs0I_ME" + "/exec?cal";
+    String deleteRowsUrl = String("/macros/s/") + "AKfycbzmSa3-qyOBWBwfmV1NpgMSAioPf-Dz13JbBZPmHeRXx1hapvLVome2nIA3YAvATuc8" + "/exec?cal";
     const char* host = "script.google.com";
     const int httpsPort = 443;
     // --- HTTPS protocol ---
@@ -903,7 +906,7 @@ void tempDataCopy()
 
 void saveDataToDrive()
 {
-    String saveToDriveUrl = String("/macros/s/") + "AKfycbxCIx9SevIpHNxBDH0L_85XjRgbSbDGB8_foXiznsPfZfPso-VYj69oJyoinwK_EvLb" + "/exec?cal";
+    String saveToDriveUrl = String("/macros/s/") + "AKfycbx9RrgSNs-LM32Ut3aKSswWR-aVHgo29_YVYNaZ8hIoMj--shAtk3Kj-qsjxpZkxZfz" + "/exec?cal";
     const char* host = "script.google.com";
     const int httpsPort = 443;
     // --- HTTPS protocol ---
@@ -1049,12 +1052,12 @@ void saveDataToDrive()
 void sendToSheet()
 {
     const char* GScriptId = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
-    String payload_base = "{\"command\": \"append_row\", \"sheet_name\": \"test\", \"values\": ";
+    String payload_base = "{\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
     String payload = "";
     const char* host = "script.google.com";
     const int httpsPort = 443;
     String url = String("/macros/s/") + GScriptId + "/exec?cal";
-
+    Serial.println("sendToSheet");
     // array that store the received values of current and voltage
     String toSendData[40];
 
@@ -1062,7 +1065,8 @@ void sendToSheet()
     float volt;
     float current;
     float dif;
-
+    totalPoints = 40;
+    
     while (totalPoints > 0)
     {
         totalPoints = totalPoints - 40;
@@ -1096,7 +1100,7 @@ void sendToSheet()
             {
                 readdata((stringCounter + 1), volt, current, dif);                   // access in the EEPROM the data of voltage and current
                 String currentVoltage = String(current, 13) + "," + String(volt, 5); // transform the data in one string
-                // toSendData[i] = String("321") + "," + String("123");
+                toSendData[i] = currentVoltage;
                 stringCounter++;
             }
 
@@ -1150,7 +1154,7 @@ void sendToSheet()
             }
         }
     }
-    payload_base = "{\"command\": \"sensor\", \"sheet_name\": \"Sheet2\", \"values\": ";
+    payload_base = "{\"command\": \"sensor\", \"sheet_name\": \"sensor\", \"values\": ";
     payload = payload_base + "\"" + humidity + "," + temperature + "," + luminosity + "\"}";
 
     Serial.println("Sending...");

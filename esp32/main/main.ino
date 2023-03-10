@@ -9,13 +9,12 @@
 #include "HTTPSRedirect.h"
 
 
-
-// const char* GScriptId   = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
-// String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"test\", \"values\": ";
-// String payload = "";
-// const char* host = "script.google.com";
-// const int httpsPort = 443;
-// String url = String("/macros/s/") + GScriptId + "/exec?cal";
+const char* GScriptId   = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
+String payload_base =  "{\"command\": \"append_row\", \"sheet_name\": \"test\", \"values\": ";
+String payload = "";
+const char* host = "script.google.com";
+const int httpsPort = 443;
+String url = String("/macros/s/") + GScriptId + "/exec?cal";
 
 // //array that store the received values of current and voltage
 // String toSendData[40];

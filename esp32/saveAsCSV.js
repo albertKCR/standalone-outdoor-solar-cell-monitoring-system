@@ -1,3 +1,6 @@
+function doGet(e){
+  return saveAsCSV();
+}
 function saveAsCSV() {
   var sheet = SpreadsheetApp.openById('1ELHCl-1dL5LFJFQ-sP02MA2dvbyNQNiFwArYep-9QsU').getSheetByName("Sheet1");
   var lastRow = sheet.getLastRow();
