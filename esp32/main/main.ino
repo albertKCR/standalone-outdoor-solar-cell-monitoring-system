@@ -25,6 +25,10 @@ String url = String("/macros/s/") + GScriptId + "/exec?cal";
 #define clockPin 25       // connected to SH_CP
 #define dataPin  26       // connected to DS
 
+#define latchPin2 23 // connected to ST_CP
+#define clockPin2 32 // connected to SH_CP
+#define dataPin2 13  // connected to DS
+
 int measurementsByTension = 1;
 float sumOfCurrents = 0;
 
@@ -42,6 +46,16 @@ RTC_DS1307 rtc;
 
 
 // --- utility values ---
+byte cellSelectRelay[8] = { B00000001,
+                            B00000010,
+                            B00000100,
+                            B00001000,
+                            B00010000,
+                            B00100000,
+                            B01000000,
+                            B10000000
+                          };
+int totalPointsArray[8] {0, 0, 0, 0, 0, 0, 0, 0};
 int rel[7] = {0x00,           // HEX for each shunt resistance
               0x08,
               0x02,
@@ -73,7 +87,7 @@ void CallISR();// interruption routine, detects falling edge
 void setup() {
   delay(100);
   Serial.begin(115200);
-
+  /*
   dht.begin();
   rtc.begin();
   if (! rtc.begin()) {
@@ -81,7 +95,7 @@ void setup() {
     while (1);
   }
   rtc.adjust(DateTime(2023, 2, 22, 17, 55, 14 ));
-  pinMode(LDR, INPUT);
+  pinMode(LDR, INPUT);*/
   Serial.println("booting");
 
   //--- 74HC595 pins as outputs
@@ -89,8 +103,13 @@ void setup() {
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin , OUTPUT);
 
-  pinMode(button, INPUT_PULLUP);                  // button as input
+  pinMode(latchPin2, OUTPUT);
+  pinMode(clockPin2, OUTPUT);
+  pinMode(dataPin2, OUTPUT);
 
+  //pinMode(button, INPUT_PULLUP);                  // button as input
+
+  digitalWrite(latchPin2, HIGH);
   digitalWrite(latchPin, HIGH);                   // LATCH pin starts ON
   //=== --- === --- === --- --- === --- === --- === --- === --- === --- --- === --- === --- === --- === ---
 
@@ -114,11 +133,11 @@ void setup() {
   //initialize the ADS
   adc.begin();
   Serial.println("done init");
-  DateTime now = rtc.now();
+  /*DateTime now = rtc.now();
   Serial.println(now.hour());
   Serial.println(now.minute());
   Serial.println(now.year());
-  sensorsMeasure();
+  sensorsMeasure();*/
 }
 
 
