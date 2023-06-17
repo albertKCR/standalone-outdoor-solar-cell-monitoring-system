@@ -12,7 +12,7 @@ extern ExternalEEPROM eep;
 class ADS1256
 {
 
-#define ADS_RST_PIN 15 // ADS1256 reset pin
+#define ADS_RST_PIN 17//15 // ADS1256 reset pin
 #define ADS_RDY_PIN 16 // ADS1256 data ready
 #define ADS_CS_PIN 5 // ADS1256 chip select
 

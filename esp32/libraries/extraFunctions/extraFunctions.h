@@ -10,6 +10,9 @@
 #include "WiFi.h"
 #include "HTTPSRedirect.h"
 
+#define latchPin2 23 // connected to ST_CP
+#define clockPin2 32 // connected to SH_CP
+#define dataPin2 13  // connected to DS
 
 #define latchPin 27 // connected to ST_CP
 #define clockPin 25 // connected to SH_CP
@@ -33,7 +36,8 @@ extern float humidity;
 extern float temperature;
 extern int luminosity;
 extern int rangeCounter;
-extern int multiplexer[7][3];
+extern byte cellSelectRelay[8];
+extern int totalPointsArray[8];
 
 // URL to access the google sheet
 // extern const char *GScriptId;
@@ -85,4 +89,5 @@ void connectToInternet();
 void tempDataCopy();
 void deleteCurrentData();
 void saveDataToDrive();
+void irradianceMeasure();
 #endif

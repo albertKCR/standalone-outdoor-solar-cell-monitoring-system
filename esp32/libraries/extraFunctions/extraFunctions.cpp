@@ -512,6 +512,10 @@ void calibrating()
             Serial.print(unit[which]);
             Serial.println('A');
 
+            Serial.print("---");
+            Serial.print(shunt[rangeCounter], 4);
+            Serial.print("---");
+
             Serial.print("channel 2 voltage : ");
             Serial.println(adc.val2, 8);
 
@@ -636,20 +640,22 @@ void autonomous()
     int hour = 12, minute = 0;
     // connectToInternet();
 
-    if ((hour == 12) && (minute == 0))
-    { // check the time to make the measurement
-
-        //autonomousSweep();
+    if ((hour == 12) && (minute == 0)) // check the time to make the measurement
+    {
         sensorsMeasure(); // reads the temperature and humidity sensor
         connectToInternet();
-        //delay(5000);
-        deleteCurrentData();
-        //delay(5000);
-        sendToSheet(); // sends the data to google sheets
-        //delay(5000);
-        tempDataCopy();
-        //delay(5000);
-        saveDataToDrive();
+        for (int i = 0; i<7 ; i++){
+            digitalWrite(latchPin2, LOW);
+            shiftOut(dataPin2, clockPin2, MSBFIRST, cellSelectRelay[i]);
+            digitalWrite(latchPin2, HIGH);
+            delay(3000);
+            autonomousSweep();
+            deleteCurrentData(); //delete the data that the receiving sheet have
+            sendToSheet(); // sends the data to google sheets
+            tempDataCopy(); //copy the temp data to the charts sheet
+            saveDataToDrive(); //save the iv graph in csv on google drive
+        } 
+        WiFi.disconnect();
 
         if (WiFi.status() != WL_CONNECTED)
         {
@@ -658,6 +664,18 @@ void autonomous()
             connectToInternet();
         }
     }
+}
+
+void irradianceMeasure(){
+    digitalWrite(latchPin2, LOW);
+    shiftOut(dataPin2, clockPin2, MSBFIRST, cellSelectRelay[7]); //the photodiode is connecteds to the last relay
+    digitalWrite(latchPin2, HIGH);
+
+    measurementsByTension = 10; //measure 10 times and calculates the mean
+    adc.conversion(shunt[rangeCounter]); // first read to check if it´s in wrong scale
+    scaleControl(); // checks the scale to starte the measure
+
+    meanOfMeasures(measurementsByTension); // mean of the current measures
 }
 
 void sensorsMeasure()
@@ -832,7 +850,7 @@ void connectToInternet()
 
 void deleteCurrentData()
 {
-    String deleteRowsUrl = String("/macros/s/") + "AKfycbzmSa3-qyOBWBwfmV1NpgMSAioPf-Dz13JbBZPmHeRXx1hapvLVome2nIA3YAvATuc8" + "/exec?cal";
+    String deleteRowsUrl = String("/macros/s/") + "AKfycby0SoAS4990Piy2W7N48O8RCILXhL6INvT3hYrWsYo5tLZ7pTjzkqsr00LvRV4NU_mq" + "/exec?cal";
     const char* host = "script.google.com";
     const int httpsPort = 443;
     // --- HTTPS protocol ---
@@ -869,7 +887,8 @@ void deleteCurrentData()
 
 void tempDataCopy()
 {
-    String copyTempUrl = String("/macros/s/") + "AKfycbxxyoFAWe9FOx0jmXTF6jMJ0wp0D2woNQrWDkj4cs0_sVRMfqazh6Sq8jylQ3UaZRbJ" + "/exec?cal";
+    //String copyTempUrl = String("/macros/s/") + "AKfycbxxyoFAWe9FOx0jmXTF6jMJ0wp0D2woNQrWDkj4cs0_sVRMfqazh6Sq8jylQ3UaZRbJ" + "/exec?cal";
+    String copyTempUrl = String("/macros/s/") + "AKfycbzZExOfuhUpqfi2Q7lauuZLFGO7G27Dvx5rzoYV2nsN7Wtc5xBjn66bTilfFmFhtp4T" + "/exec?cal";
     const char* host = "script.google.com";
     const int httpsPort = 443;
     // --- HTTPS protocol ---
@@ -906,7 +925,7 @@ void tempDataCopy()
 
 void saveDataToDrive()
 {
-    String saveToDriveUrl = String("/macros/s/") + "AKfycbx9RrgSNs-LM32Ut3aKSswWR-aVHgo29_YVYNaZ8hIoMj--shAtk3Kj-qsjxpZkxZfz" + "/exec?cal";
+    String saveToDriveUrl = String("/macros/s/") + "AKfycbxtwh5XX_VBKGp_fqnvN8yrLqCZag9h9bQNeKwNcob1juSHmZ3JJAW7qm1Hp_6qGBy7" + "/exec?cal";
     const char* host = "script.google.com";
     const int httpsPort = 443;
     // --- HTTPS protocol ---
@@ -1048,7 +1067,7 @@ void saveDataToDrive()
     }
     totalPoints = 0;
 }*/
-
+/*
 void sendToSheet()
 {
     const char* GScriptId = "AKfycbwAc066yXAIMH84iAJHCmq6K1sNtSqQtBfGjoEJtb8XSTWOpXTj33y-lcckYLiEBnbq";
@@ -1110,6 +1129,127 @@ void sendToSheet()
             {
                 payload = payload + "," + toSendData[i];
             }
+            payload = payload + "\"}";
+
+            Serial.println("Sending...");
+
+            if (client->POST(url, host, payload))
+            { // Send the data through the google API
+                Serial.println(" [OK]");
+            }
+            else
+            {
+                Serial.println("[Error]");
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 40 - abs(totalPoints); i++)
+            {
+                readdata((stringCounter + 1), volt, current, dif);                   // access in the EEPROM the data of voltage and current
+                String currentVoltage = String(current, 13) + "," + String(volt, 5); // transform the data in one string
+                toSendData[i] = currentVoltage;
+                // toSendData[i] = String("321") + "," + String("123");
+                stringCounter++;
+            }
+
+            // the payload will be constructed according to the received data
+            payload = payload_base + "\"" + toSendData[0];
+            for (int i = 1; i < stringCounter; i++)
+            {
+                payload = payload + "," + toSendData[i];
+            }
+            payload = payload + "\"}";
+
+            Serial.println("Sending...");
+
+            if (client->POST(url, host, payload))
+            { // Send the data through the google API
+                Serial.println(" [OK]");
+            }
+            else
+            {
+                Serial.println("[Error]");
+            }
+        }
+    }
+    payload_base = "{\"command\": \"sensor\", \"sheet_name\": \"sensor\", \"values\": ";
+    payload = payload_base + "\"" + humidity + "," + temperature + "," + luminosity + "\"}";
+
+    Serial.println("Sending...");
+    if (client->POST(url, host, payload))
+    { // Execute the script
+        Serial.println(" [OK]");
+    }
+    else
+    {
+        Serial.println("[Error]");
+    }
+    totalPoints = 0;
+}*/
+
+void sendToSheet()
+{
+    const char* GScriptId = "AKfycbylWtcCJ-SFRvEyPq_tDm3LhNcCVnQsBy54dpxqtwA2QDVtrNgXk5ihfI1728CIDTA";
+    String payload_base = "{\"command\": \"append_row\", \"sheet_name\": \"Sheet1\", \"values\": ";
+    String payload = "";
+    const char* host = "script.google.com";
+    const int httpsPort = 443;
+    String url = String("/macros/s/") + GScriptId + "/exec?cal";
+    Serial.println("sendToSheet");
+    // array that store the received values of current and voltage
+    String toSendData[40];
+
+    int stringCounter = 0;
+    float volt;
+    float current;
+    float dif;
+    totalPoints = 40;
+    
+    while (totalPoints > 0)
+    {
+        totalPoints = totalPoints - 40;
+        if (totalPoints > 0)
+        {
+
+            // --- HTTPS protocol ---
+            static bool flag = false;
+            if (!flag)
+            {
+                client = new HTTPSRedirect(httpsPort);
+                client->setInsecure();
+                flag = true;
+                client->setPrintResponseBody(true);
+                client->setContentTypeHeader("application/json");
+            }
+            if (client != nullptr)
+            {
+                if (!client->connected())
+                {
+                    client->connect(host, httpsPort);
+                }
+            }
+            else
+            {
+                Serial.println("[Error]");
+            }
+            // ---
+
+            for (int i = 0; i < 40; i++)
+            {
+                readdata((stringCounter + 1), volt, current, dif);                   // access in the EEPROM the data of voltage and current
+                String currentVoltage = String(current, 13) + "," + String(volt, 5); // transform the data in one string
+                toSendData[i] = currentVoltage;
+                stringCounter++;
+            }
+
+            // the payload will be constructed according to the received data
+            payload = payload_base + "\"" + toSendData[0];
+            for (int i = 1; i < stringCounter; i++)
+            {
+                payload = payload + "," + toSendData[i];
+            }
+            payload = payload + ", \"total_points\": \" " + String(totalPoints) + "\" ";
             payload = payload + "\"}";
 
             Serial.println("Sending...");
