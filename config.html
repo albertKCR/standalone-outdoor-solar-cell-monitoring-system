@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <title>Solar cell monitoring system</title>
+  <link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #header {
+      display: flex;
+      flex-direction: row;
+      background-color: #fecc00;
+      position: fixed;
+      width: 100%;
+      height: 50px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      height: 50px;
+      font-family: lato;
+      font-size: 35px;
+      margin-left: 35%;
+      color: black;
+      text-align: center;
+    }
+
+    .config-title {
+      font-family: lato;
+      font-size: 28px;
+      color: black;
+      text-align: center;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      font-family: lato;
+      width: 100%;
+      height: 45px;
+      background-color: #fecc00;
+    }
+
+    .footer-img {
+      display: flex;
+      flex-direction: row;
+      padding: 5px;
+      width: 400px;
+      justify-content: space-between;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #menu-h {
+      background-color: black;
+    }
+
+    #menu-h ul {
+      max-width: 800px;
+      list-style: none;
+      padding: 0;
+      display: flex;
+      justify-content: initial;
+    }
+
+    #menu-h ul li {
+      display: inline;
+      padding: 0;
+    }
+
+    #menu-h ul li a {
+      color: #FFF;
+      padding: 16px;
+      display: inline-block;
+      text-decoration: none;
+      transition: background .4s;
+    }
+
+    #menu-h ul li a:hover {
+      background-color: rgb(24, 139, 233);
+    }
+
+    .label {
+      color: black;
+      font-family: poppins;
+      font-size: 20px;
+      font-weight: 400;
+      width: 250px;
+      height: 25px;
+      font-family: poppins;
+      font-size: 18px;
+      border-radius: 5px;
+      margin-top: 5px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      border-color: white;
+    }
+
+    .checks {
+      font-family: poppins;
+      font-size: 18px;
+      color: black;
+      font-weight: 100;
+      margin-bottom: 10px;
+      display: flex;
+    }
+
+    .charts {
+      text-align: center;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      width: 100%;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .config-menu {
+      background-color: #fecc00;
+      width: 650px;
+      height: 1050px;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 7px;
+      padding: 30px;
+      padding-top: 5px;
+      margin-top: 80px;
+      margin-bottom: 100px;
+    }
+
+    #submit {
+      background-color: black;
+      color: white;
+      height: 40px;
+      width: 250px;
+      font-family: poppins;
+      font-size: 18px;
+      border-radius: 5px;
+      margin-top: 5px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      cursor: pointer;
+      margin-top: 30px;
+      transition: background .4s;
+    }
+
+    #submit:hover {
+      background-color: rgb(24, 139, 233);
+    }
+  </style>
+</head>
+
+<body>
+  <header id="header">
+    <h1 class="header-title">
+      SOLAR CELL MONITORING SYSTEM
+    </h1>
+    <nav id="menu-h">
+      <ul>
+        <li><a href="index.html">RESULTS</a></li>
+        <li><a href="iv.html">I-V</a></li>
+        <li><a href="config.html">SETTINGS</a></li>
+      </ul>
+    </nav>
+  </header>
+  <div class="charts">
+    <div class="config-menu">
+
+      <!-- <form method="POST" action="https://script.google.com/macros/s/AKfycbxV1qjRDi9iiaCrcGw-DK-48q_ic7ZXzLC9rByrKCtkYMjPMTnrywtxgZoX5xHNovNn/exec">
+        <h1 class="config-title">CONFIGURATION MENU</h1>
+        <input class="label" type="time" id="time" name="time" required
+          placeholder="Insert the time of the measure"><br>
+        <input class="label" type="number" id="initialVoltage" name="initialVoltage" required
+          placeholder="Initial voltage"><br>
+        <input class="label" type="number" id="finalVoltage" name="finalVoltage" required
+          placeholder="Final voltage"><br>
+        <input class="label" type="number" id="timeStep" name="timeStep" required placeholder="Time step"><br>
+        <label class="checks"><input type="checkbox" value="r1">Relay 1</label>
+        <label class="checks"><input type="checkbox" value="r2">Relay 2</label>
+        <label class="checks"><input type="checkbox" value="r3">Relay 3</label>
+        <label class="checks"><input type="checkbox" value="r4">Relay 4</label>
+        <label class="checks"><input type="checkbox" value="r5">Relay 5</label>
+        <label class="checks"><input type="checkbox" value="r6">Relay 6</label>
+        <label class="checks"><input type="checkbox" value="r7">Relay 7</label>
+        <label class="checks"><input type="checkbox" value="r8">Relay 8</label>
+        <button id="submit" type="submit">Submit</button>
+      </form> -->
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScTDYKXYmCIRMCqM54Y_nS0wjNZOcVasaM6i2DgWyEvl8cFhw/viewform?embedded=true" width="640" height="1050" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
+    </div>
+  </div>
+  <footer>
+    <div class="footer-img">
+      <img src="utfpr.png" height="40px">
+      <img style="margin-left: 60px;margin-right: 60px;" src="cnpq.png" height="40px">
+      <img src="ineo.png" height="40px">
+    </div>
+  </footer>
+</body>
+
+</html>
